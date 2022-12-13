@@ -114,7 +114,7 @@
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 1,
+          "decimals": 0,
           "mappings": [],
           "min": 0,
           "thresholds": {
@@ -126,11 +126,11 @@
               },
               {
                 "color": "green",
-                "value": 4
+                "value": 75
               },
               {
                 "color": "#EAB839",
-                "value": 9
+                "value": 160
               }
             ]
           }
@@ -165,7 +165,7 @@
             "type": "influxdb",
             "uid": "${DS_INFLUXDB}"
           },
-          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\" )\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with \n    _value: r._value/18.0,\n    _measurement: \"\"\n    }))",
+          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\" )\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with \n    _value: r._value,\n    _measurement: \"\"\n    }))",
           "refId": "A"
         }
       ],
@@ -186,7 +186,7 @@
           "custom": {
             "axisLabel": "",
             "axisPlacement": "left",
-            "axisSoftMax": 14,
+            "axisSoftMax": 250,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 0,
@@ -222,11 +222,11 @@
               },
               {
                 "color": "green",
-                "value": 3.9
+                "value": 70
               },
               {
                 "color": "#EAB839",
-                "value": 10
+                "value": 180
               }
             ]
           }
@@ -337,7 +337,7 @@
               },
               {
                 "id": "decimals",
-                "value": 1
+                "value": 0
               },
               {
                 "id": "custom.hideFrom",
@@ -424,7 +424,7 @@
               },
               {
                 "id": "min",
-                "value": 2
+                "value": 35
               },
               {
                 "id": "custom.axisPlacement",
@@ -504,7 +504,7 @@
               },
               {
                 "id": "min",
-                "value": 2
+                "value": 20
               }
             ]
           },
@@ -545,7 +545,7 @@
               },
               {
                 "id": "min",
-                "value": 2
+                "value": 35
               }
             ]
           },
@@ -574,7 +574,7 @@
               },
               {
                 "id": "max",
-                "value": 17
+                "value": 300
               },
               {
                 "id": "custom.axisPlacement",
@@ -664,7 +664,7 @@
             "uid": "${DS_INFLUXDB}"
           },
           "hide": false,
-          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r._value > 0)\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\" \n    or r[\"_field\"] == \"iob\"\n    or r[\"_field\"] == \"bg\" \n    or r[\"_field\"] == \"isf\" \n    or r[\"_field\"] == \"target_bg\"\n    or r[\"_field\"] == \"activity\")\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with \n    _value: if r._field == \"bg\" or r._field == \"target_bg\" then r._value/18.0 else if r._field == \"activity\" then r._value*500.0 else r._value,\n    _measurement: \"\"\n    }))",
+          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r._value > 0)\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\" \n    or r[\"_field\"] == \"iob\"\n    or r[\"_field\"] == \"bg\" \n    or r[\"_field\"] == \"isf\" \n    or r[\"_field\"] == \"target_bg\"\n    or r[\"_field\"] == \"activity\")\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with \n    _value: if r._field == \"bg\" or r._field == \"target_bg\" then r._value else if r._field == \"activity\" then r._value*500.0 else r._value,\n    _measurement: \"\"\n    }))",
           "refId": "A"
         },
         {
@@ -790,7 +790,7 @@
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 1,
+          "decimals": 0,
           "mappings": [
             {
               "options": {
@@ -858,11 +858,11 @@
               },
               {
                 "color": "green",
-                "value": 4
+                "value": 75
               },
               {
                 "color": "#EAB839",
-                "value": 9
+                "value": 160
               }
             ]
           }
@@ -898,7 +898,7 @@
             "type": "influxdb",
             "uid": "${DS_INFLUXDB}"
           },
-          "query": "from(bucket: \"ns\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 2)\n  |> derivative(unit: 5m)\n  |> map(fn: (r) => ({ value: r._value / 18.0}))",
+          "query": "from(bucket: \"ns\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 2)\n  |> derivative(unit: 5m)\n  |> map(fn: (r) => ({ value: r._value}))",
           "refId": "A"
         }
       ],
@@ -921,7 +921,7 @@
             "inspect": false,
             "width": 85
           },
-          "decimals": 1,
+          "decimals": 0,
           "mappings": [],
           "min": 0,
           "thresholds": {
@@ -976,7 +976,7 @@
             "type": "influxdb",
             "uid": "${DS_INFLUXDB}"
           },
-          "query": "import \"experimental/aggregate\"\n\nt1 = from(bucket: \"ns\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 2)\n  |> derivative(unit: 5m)\n  |> map(fn: (r) => ({ index: 0, name: \"Ⲇ 5m\", value: r._value / 18.0}))\n\nt2 = from(bucket: \"ns\")\n  |> range(start: -30m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 3)\n  |> derivative(unit: 5m)\n  |> movingAverage(n: 3)\n  |> map(fn: (r) => ({ index: 1, name: \"Ⲇ 15m\", value: r._value / 18.0}))\n\nt3 = from(bucket: \"ns\")\n  |> range(start: -45m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 8)\n  |> derivative(unit: 5m)\n  |> movingAverage(n: 8)\n  |> map(fn: (r) => ({ index: 2, name: \"Ⲇ 40m\", value: r._value / 18.0}))\n\nunion(tables: [t3, t2, t1])\n  |> sort(columns: [\"index\"])\n  |> drop(columns: [\"index\"])",
+          "query": "import \"experimental/aggregate\"\n\nt1 = from(bucket: \"ns\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 2)\n  |> derivative(unit: 5m)\n  |> map(fn: (r) => ({ index: 0, name: \"Ⲇ 5m\", value: r._value}))\n\nt2 = from(bucket: \"ns\")\n  |> range(start: -30m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 3)\n  |> derivative(unit: 5m)\n  |> movingAverage(n: 3)\n  |> map(fn: (r) => ({ index: 1, name: \"Ⲇ 15m\", value: r._value}))\n\nt3 = from(bucket: \"ns\")\n  |> range(start: -45m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 8)\n  |> derivative(unit: 5m)\n  |> movingAverage(n: 8)\n  |> map(fn: (r) => ({ index: 2, name: \"Ⲇ 40m\", value: r._value}))\n\nunion(tables: [t3, t2, t1])\n  |> sort(columns: [\"index\"])\n  |> drop(columns: [\"index\"])",
           "refId": "A"
         }
       ],
@@ -1108,7 +1108,7 @@
             "uid": "${DS_INFLUXDB}"
           },
           "hide": false,
-          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"pred_zt\" or r[\"_field\"] == \"pred_uam\" or r[\"_field\"] == \"pred_iob\" or r[\"_field\"] == \"pred_cob\")\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: true)\n  |> fill(value: 0.0)\n  |> map(fn: (r) => ({ r with _value: float(v: r._value)/18.0, _measurement: \"\" }))",
+          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"pred_zt\" or r[\"_field\"] == \"pred_uam\" or r[\"_field\"] == \"pred_iob\" or r[\"_field\"] == \"pred_cob\")\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: true)\n  |> fill(value: 0.0)\n  |> map(fn: (r) => ({ r with _value: float(v: r._value), _measurement: \"\" }))",
           "refId": "D"
         }
       ],
@@ -1296,11 +1296,11 @@
               },
               {
                 "color": "green",
-                "value": 3.9
+                "value": 70
               },
               {
                 "color": "#EAB839",
-                "value": 10
+                "value": 180
               }
             ]
           }
@@ -1716,11 +1716,11 @@
                   },
                   {
                     "color": "green",
-                    "value": 3.9
+                    "value": 70
                   },
                   {
                     "color": "#EAB839",
-                    "value": 10
+                    "value": 180
                   }
                 ]
               }
@@ -1832,7 +1832,7 @@
               "measurement": "openaps",
               "orderByTime": "ASC",
               "policy": "ns",
-              "query": "SELECT \"bg\"  / 18.0 FROM \"ns\".\"openaps\" WHERE $timeFilter",
+              "query": "SELECT \"bg\"  FROM \"ns\".\"openaps\" WHERE $timeFilter",
               "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
@@ -1846,7 +1846,7 @@
                   },
                   {
                     "params": [
-                      " / 18.0"
+                      " * 1"
                     ],
                     "type": "math"
                   }
