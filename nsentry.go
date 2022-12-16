@@ -4,15 +4,22 @@ import "time"
 
 type NsEntry struct {
 	OpenAps struct {
-		Suggested struct {
+		Enacted struct {
 			Temp             string    `json:"temp" bson:"temp"`
 			Bg               float64   `json:"bg" bson:"bg"`
-			Tick             float64   `json:"-" bson:"-"`
+			Tick             float64   `json:"tick" bson:"tick"`
 			EventualBG       float64   `json:"eventualBG" bson:"eventualBG"`
-			TargetBG         float64   `json:"targetBG" bson:"targetBG"`
+			TargetBG         float64   `json:"targetBG" bson:"target_bg"`
 			InsulinReq       float64   `json:"insulinReq" bson:"insulinReq"`
 			DeliverAt        time.Time `json:"deliverAt" bson:"deliverAt"`
 			SensitivityRatio float64   `json:"sensitivityRatio" bson:"sensitivityRatio"`
+			Tdd              float64   `json:"TDD" bson:"TDD"`
+			DuraISFratio     float64   `json:"dura_ISFratio" bson:"dura_ISFratio"`
+			BgISFratio       float64   `json:"bg_ISFratio" bson:"bg_ISFratio"`
+			DeltaISFratio    float64   `json:"delta_ISFratio" bson:"delta_ISFratio"`
+			PpISFratio       float64   `json:"pp_ISFratio" bson:"pp_ISFratio"`
+			AcceISFratio     float64   `json:"acce_ISFratio" bson:"acce_ISFratio"`
+			AutoISFratio     float64   `json:"auto_ISFratio" bson:"auto_ISFratio"`
 			PredBGs          struct {
 				IOB []float64 `json:"IOB"`
 				ZT  []float64 `json:"ZT"`
@@ -26,7 +33,7 @@ type NsEntry struct {
 			Rate      float64   `json:"rate"`
 			Duration  int       `json:"duration"`
 			Timestamp time.Time `json:"timestamp"`
-		} `json:"suggested,omitempty" bson:"suggested,omitempty"`
+		} `json:"enacted,omitempty" bson:"enacted,omitempty"`
 		IOB struct {
 			IOB      float64   `json:"iob" bson:"iob"`
 			BasalIOB float64   `json:"basaliob" bson:"basaliob"`
