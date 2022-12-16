@@ -1,8 +1,10 @@
 # ns-exporter
 Nightscout exporter to InfluxDB
 
-### usage variants:
-1. inline
+## Installation:
+### 1. make the executable for ns-exprter
+
+You need at least go version 1.17.
 ```
 go build
 ./ns-exporter
@@ -12,6 +14,44 @@ go build
 docker build -t ns-exporter .
 docker run -d ns-exporter:latest
 ```
+
+So the ns-exporter docker image should now be available on the local machine where you built it. If you did not do all above on a VM you have to upload the image to Docker hub.
+
+```
+ docker login
+ docker tag ns-exporter:latest <yourDockerhubAccount>/ns-exporter:latest
+ docker push <yourDockerhubAccount>/ns-exporter:latest
+```
+
+### 3. Deploy Docker containers
+
+#### Grafana & Influx DB
+
+You have to start with Grafana and Influx container as you have to configure the Influx DB and Grafana before you can deploy the ns-exporter container as it needs the token that you created on Influx DB.
+
+So you can use [docker-compose.yml](https://github.com/mountrcg/ns-exporter/blob/master/docker-compose.yml) but you have to delete the service for ns-exporter in the first deployment. 
+
+Make sure not to forget the 2 volume specs, which are on the same level as the services for grafana and influx.
+
+You can also look at [my ns-setup compose file](https://github.com/mountrcg/ns-exporter/blob/master/ns-setup/docker-compose.yml) and use the Grafana and Influx Service parts if you used  Justmaras ns-setup with traefik and so on. This is complete yml that puts 2 NS sites, 1 mongo, 1 traefik, 1 grafana, 1 Influx and 1 ns-exporter on one VM. When all is running without mistakes you can also push 3.000 entries (NS_EXPORTER_LIMIT=3000) from mongo to Influx (more than a week of data). However you will shortly push through the CPU ceiling of the E2 micro on GCC.
+
+![view perf3](./ns-setup/performance3.png)
+
+#### Configure Influx DB & Grafana
+
+Thats the reason I gave Grafana and Influx a subdomain in FreeDNS, so that I can access the webinterfaces. The initial Login for Grafana is admin:admin. Influx is a little more user friendly to start it initially.
+**In Influx DB you have to name the Bucket 'ns'.** You also have to create an API Token, which you need for Grafana to access the Influx DB and also as a paramater to deploy the ns-exporter Docker container. 
+Follow the [explanation to use Grafana with Influx DB](https://docs.influxdata.com/influxdb/v2.3/tools/grafana/?t=InfluxQL#view-and-create-influxdb-v1-authorizations), I use Flux as querry language. 
+
+In Grafana you can import the sample dashboard, that you can tweak: [grafana.json](https://github.com/mountrcg/ns-exporter/blob/master/grafana.json). Mine is in mg/dL, at Justmara's repo you find one in mmol/L.
+
+#### ns-exporter Docker container config & deployment
+
+So now you can configure the token for Influx DB in the ns-exporter variable in docker-compose.yml and deploy the last container. I did connect to mongo directly so did not configure the nightscout variables. You can check in Influx whether data is arriving, if all is fine it just takes a couple of seconds before the ns bucket fills with data.
+
+![view Dashboard](./ns-setup/Grafana-mgdl.png)
+
+## Some Config topics
 
 arguments:
 
