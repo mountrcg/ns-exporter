@@ -4,14 +4,15 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"github.com/influxdata/influxdb-client-go/v2/api/write"
-	"github.com/peterbourgon/ff/v3"
 	"log"
 	"os"
 	"regexp"
 	"strconv"
 	"sync"
+
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api/write"
+	"github.com/peterbourgon/ff/v3"
 )
 
 var wg sync.WaitGroup
@@ -138,8 +139,17 @@ func parseDeviceStatuses(group *sync.WaitGroup, influx chan write.Point, entries
 				AddField("insulin_req", entry.OpenAps.Suggested.InsulinReq).
 				AddField("cob", entry.OpenAps.Suggested.COB).
 				AddField("bolus", entry.OpenAps.Suggested.Units).
+				AddField("temp", entry.OpenAps.Suggested.Temp).
 				AddField("tbs_rate", entry.OpenAps.Suggested.Rate).
-				AddField("tbs_duration", entry.OpenAps.Suggested.Duration)
+				AddField("tbs_duration", entry.OpenAps.Suggested.Duration).
+				AddField("sens", entry.OpenAps.Suggested.SensitivityRatio).
+				AddField("tdd", entry.OpenAps.Suggested.Tdd).
+				AddField("duraISF_ratio", entry.OpenAps.Suggested.DuraISFratio).
+				AddField("bgISF_ratio", entry.OpenAps.Suggested.BgISFratio).
+				AddField("deltaISF_ratio", entry.OpenAps.Suggested.DeltaISFratio).
+				AddField("ppISF_ratio", entry.OpenAps.Suggested.PpISFratio).
+				AddField("acceISF_ratio", entry.OpenAps.Suggested.AcceISFratio).
+				AddField("autoISF_ratio", entry.OpenAps.Suggested.AutoISFratio)
 
 			if len(entry.OpenAps.Suggested.PredBGs.COB) > 0 {
 				point.AddField("pred_cob", entry.OpenAps.Suggested.PredBGs.COB[len(entry.OpenAps.Suggested.PredBGs.COB)-1])
