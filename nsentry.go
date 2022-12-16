@@ -4,7 +4,7 @@ import "time"
 
 type NsEntry struct {
 	OpenAps struct {
-		Suggested struct {
+		Enacted struct {
 			Temp             string    `json:"temp" bson:"temp"`
 			Bg               float64   `json:"bg" bson:"bg"`
 			Tick             float64   `json:"tick" bson:"tick"`
@@ -33,7 +33,7 @@ type NsEntry struct {
 			Rate      float64   `json:"rate"`
 			Duration  int       `json:"duration"`
 			Timestamp time.Time `json:"timestamp"`
-		} `json:"suggested,omitempty" bson:"suggested,omitempty"`
+		} `json:"enacted,omitempty" bson:"enacted,omitempty"`
 		IOB struct {
 			IOB      float64   `json:"iob" bson:"iob"`
 			BasalIOB float64   `json:"basaliob" bson:"basaliob"`

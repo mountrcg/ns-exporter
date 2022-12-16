@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"strconv"
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsontype"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
-	"strconv"
-	"time"
 )
 
 type MongoClient struct {
@@ -74,8 +75,8 @@ func (c MongoClient) LoadDeviceStatuses(queue chan NsEntry, limit int64, skip in
 			fmt.Println(cur.Current.String())
 			log.Fatal(err)
 		}
-		if entry.OpenAps.Suggested.Bg > 0 {
-			field := cur.Current.Lookup("openaps", "suggested", "tick")
+		if entry.OpenAps.Enacted.Bg > 0 {
+			field := cur.Current.Lookup("openaps", "enacted", "tick")
 			var tick float64 = 0
 			if field.Type == bsontype.String {
 				tick, err = strconv.ParseFloat(field.StringValue(), 32)
@@ -83,14 +84,14 @@ func (c MongoClient) LoadDeviceStatuses(queue chan NsEntry, limit int64, skip in
 			if field.Type == bsontype.Int32 {
 				tick = float64(field.AsInt64())
 			}
-			entry.OpenAps.Suggested.Tick = tick
+			entry.OpenAps.Enacted.Tick = tick
 		}
 
 		queue <- entry
 
 		count++
 
-		fmt.Println("time: ", entry.OpenAps.IOB.Time, "iob:", entry.OpenAps.IOB.IOB, ", bg: ", entry.OpenAps.Suggested.Bg)
+		fmt.Println("time: ", entry.OpenAps.IOB.Time, "iob:", entry.OpenAps.IOB.IOB, ", bg: ", entry.OpenAps.Enacted.Bg)
 	}
 	fmt.Println("total devicestatuses sent: ", count)
 	if err := cur.Err(); err != nil {

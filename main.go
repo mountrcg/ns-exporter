@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"html"
 	"log"
 	"os"
 	"regexp"
@@ -118,53 +119,52 @@ func parseDeviceStatuses(group *sync.WaitGroup, influx chan write.Point, entries
 			AddField("activity", entry.OpenAps.IOB.Activity).
 			SetTime(entry.OpenAps.IOB.Time)
 
-		if entry.OpenAps.Suggested.Bg > 0 {
+		if entry.OpenAps.Enacted.Bg > 0 {
 
-			var tick = entry.OpenAps.Suggested.Tick
-			if lastbg == entry.OpenAps.Suggested.Bg &&
+			var tick = entry.OpenAps.Enacted.Tick
+			if lastbg == entry.OpenAps.Enacted.Bg &&
 				lasttick == tick &&
 				tick != 0.0 {
 				// deduplication, because nightscout still allows duplicate records to be added
-				fmt.Println("skipping duplicate bg record: ", entry.OpenAps.IOB.Time, ", bg: ", entry.OpenAps.Suggested.Bg, ", tick: ", tick)
+				fmt.Println("skipping duplicate bg record: ", entry.OpenAps.IOB.Time, ", bg: ", entry.OpenAps.Enacted.Bg, ", tick: ", tick)
 				continue
 			}
 
-			lastbg = entry.OpenAps.Suggested.Bg
+			lastbg = entry.OpenAps.Enacted.Bg
 			lasttick = tick
 			point.
-				AddField("bg", entry.OpenAps.Suggested.Bg).
+				AddField("bg", entry.OpenAps.Enacted.Bg).
 				AddField("tick", tick).
-				AddField("eventual_bg", entry.OpenAps.Suggested.EventualBG).
-				AddField("target_bg", entry.OpenAps.Suggested.TargetBG).
-				AddField("insulin_req", entry.OpenAps.Suggested.InsulinReq).
-				AddField("cob", entry.OpenAps.Suggested.COB).
-				AddField("bolus", entry.OpenAps.Suggested.Units).
-				AddField("temp", entry.OpenAps.Suggested.Temp).
-				AddField("tbs_rate", entry.OpenAps.Suggested.Rate).
-				AddField("tbs_duration", entry.OpenAps.Suggested.Duration).
-				AddField("sens", entry.OpenAps.Suggested.SensitivityRatio).
-				AddField("tdd", entry.OpenAps.Suggested.Tdd).
-				AddField("duraISF_ratio", entry.OpenAps.Suggested.DuraISFratio).
-				AddField("bgISF_ratio", entry.OpenAps.Suggested.BgISFratio).
-				AddField("deltaISF_ratio", entry.OpenAps.Suggested.DeltaISFratio).
-				AddField("ppISF_ratio", entry.OpenAps.Suggested.PpISFratio).
-				AddField("acceISF_ratio", entry.OpenAps.Suggested.AcceISFratio).
-				AddField("autoISF_ratio", entry.OpenAps.Suggested.AutoISFratio)
+				AddField("eventual_bg", entry.OpenAps.Enacted.EventualBG).
+				AddField("target_bg", entry.OpenAps.Enacted.TargetBG).
+				AddField("insulin_req", entry.OpenAps.Enacted.InsulinReq).
+				AddField("cob", entry.OpenAps.Enacted.COB).
+				AddField("bolus", entry.OpenAps.Enacted.Units).
+				AddField("tbs_rate", entry.OpenAps.Enacted.Rate).
+				AddField("tbs_duration", entry.OpenAps.Enacted.Duration).
+				AddField("sens", entry.OpenAps.Enacted.SensitivityRatio).
+				AddField("tdd", entry.OpenAps.Enacted.Tdd).
+				AddField("duraISF_ratio", entry.OpenAps.Enacted.DuraISFratio).
+				AddField("bgISF_ratio", entry.OpenAps.Enacted.BgISFratio).
+				AddField("deltaISF_ratio", entry.OpenAps.Enacted.DeltaISFratio).
+				AddField("ppISF_ratio", entry.OpenAps.Enacted.PpISFratio).
+				AddField("acceISF_ratio", entry.OpenAps.Enacted.AcceISFratio).
+				AddField("autoISF_ratio", entry.OpenAps.Enacted.AutoISFratio)
 
-			if len(entry.OpenAps.Suggested.PredBGs.COB) > 0 {
-				point.AddField("pred_cob", entry.OpenAps.Suggested.PredBGs.COB[len(entry.OpenAps.Suggested.PredBGs.COB)-1])
+			if len(entry.OpenAps.Enacted.PredBGs.COB) > 0 {
+				point.AddField("pred_cob", entry.OpenAps.Enacted.PredBGs.COB[len(entry.OpenAps.Enacted.PredBGs.COB)-1])
 			}
-			if len(entry.OpenAps.Suggested.PredBGs.IOB) > 0 {
-				point.AddField("pred_iob", entry.OpenAps.Suggested.PredBGs.IOB[len(entry.OpenAps.Suggested.PredBGs.IOB)-1])
+			if len(entry.OpenAps.Enacted.PredBGs.IOB) > 0 {
+				point.AddField("pred_iob", entry.OpenAps.Enacted.PredBGs.IOB[len(entry.OpenAps.Enacted.PredBGs.IOB)-1])
 			}
-			if len(entry.OpenAps.Suggested.PredBGs.UAM) > 0 {
-				point.AddField("pred_uam", entry.OpenAps.Suggested.PredBGs.UAM[len(entry.OpenAps.Suggested.PredBGs.UAM)-1])
+			if len(entry.OpenAps.Enacted.PredBGs.UAM) > 0 {
+				point.AddField("pred_uam", entry.OpenAps.Enacted.PredBGs.UAM[len(entry.OpenAps.Enacted.PredBGs.UAM)-1])
 			}
-			if len(entry.OpenAps.Suggested.PredBGs.ZT) > 0 {
-				point.AddField("pred_zt", entry.OpenAps.Suggested.PredBGs.ZT[len(entry.OpenAps.Suggested.PredBGs.ZT)-1])
+			if len(entry.OpenAps.Enacted.PredBGs.ZT) > 0 {
+				point.AddField("pred_zt", entry.OpenAps.Enacted.PredBGs.ZT[len(entry.OpenAps.Enacted.PredBGs.ZT)-1])
 			}
-			if len(entry.OpenAps.Suggested.Reason) > 0 {
-				matches := reg.FindStringSubmatch(entry.OpenAps.Suggested.Reason)
+			if len(entry.OpenAps.Enacted.Reason) > 0 {
+				matches := reg.FindStringSubmatch(entry.OpenAps.Enacted.Reason)
 				names := reg.SubexpNames()
 				for i, match := range matches {
 					if i != 0 {
@@ -176,14 +176,14 @@ func parseDeviceStatuses(group *sync.WaitGroup, influx chan write.Point, entries
 					}
 				}
 
-				point.AddField("reason", entry.OpenAps.Suggested.Reason)
+				point.AddField("reason", html.UnescapeString(entry.OpenAps.Enacted.Reason))
 			}
 		}
 
 		count++
 		influx <- *point
 
-		fmt.Println("time: ", entry.OpenAps.IOB.Time, "iob:", entry.OpenAps.IOB.IOB, ", bg: ", entry.OpenAps.Suggested.Bg)
+		fmt.Println("time: ", entry.OpenAps.IOB.Time, "iob:", entry.OpenAps.IOB.IOB, ", bg: ", entry.OpenAps.Enacted.Bg)
 	}
 	fmt.Println("total devicestatuses parsed: ", count)
 }
