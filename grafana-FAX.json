@@ -3,9 +3,10 @@
     "list": [
       {
         "datasource": {
-          "type": "influxdb"
+          "type": "influxdb",
+          "uid": "mOlbTp5Vz"
         },
-        "enable": true,
+        "enable": false,
         "iconColor": "#ff983047",
         "mappings": {
           "text": {
@@ -64,7 +65,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#da615c"
+                "color": "#da615c",
+                "value": null
               },
               {
                 "color": "#87cd9c",
@@ -104,7 +106,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
           },
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\" )\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with \n    _value: r._value,\n    _measurement: \"\"\n    }))",
           "refId": "A"
@@ -115,30 +118,40 @@
     },
     {
       "datasource": {
-        "type": "influxdb",
-        "uid": "mOlbTp5Vz"
+        "type": "datasource",
+        "uid": "-- Mixed --"
       },
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "light-blue",
-            "mode": "thresholds"
+            "mode": "palette-classic",
+            "seriesBy": "last"
           },
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
+            "axisGridShow": true,
             "axisLabel": "",
             "axisPlacement": "auto",
+            "axisSoftMax": 1.5,
+            "axisSoftMin": 0.7,
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 35,
-            "gradientMode": "scheme",
+            "fillOpacity": 0,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "smooth",
+            "lineInterpolation": "stepAfter",
+            "lineStyle": {
+              "dash": [
+                0,
+                10
+              ],
+              "fill": "dot"
+            },
             "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
@@ -151,19 +164,25 @@
               "mode": "none"
             },
             "thresholdsStyle": {
-              "mode": "line"
+              "mode": "off"
             }
           },
+          "decimals": 2,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "super-light-purple"
+                "color": "#6cb076",
+                "value": null
               },
               {
-                "color": "blue",
-                "value": 0
+                "color": "#f6c35d",
+                "value": 1.05
+              },
+              {
+                "color": "#b33f38",
+                "value": 1.8
               }
             ]
           }
@@ -172,14 +191,65 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "iob"
+              "options": "autoISF_ratio"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "solid"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds",
+                  "seriesBy": "last"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "scheme"
+              },
+              {
+                "id": "displayName",
+                "value": "AutoISF-Ratio"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "acceISF_ratio"
             },
             "properties": [
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "#104696",
+                  "fixedColor": "dark-purple",
                   "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
                 }
               }
             ]
@@ -187,18 +257,23 @@
         ]
       },
       "gridPos": {
-        "h": 4,
+        "h": 7,
         "w": 15,
         "x": 3,
         "y": 0
       },
-      "id": 21,
+      "id": 27,
+      "interval": "5m",
+      "maxDataPoints": 1000,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+          "calcs": [
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "width": 160
         },
         "tooltip": {
           "mode": "multi",
@@ -208,14 +283,33 @@
       "targets": [
         {
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
           },
           "hide": false,
-          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"iob\" or r[\"_field\"] == \"basal_iob\")",
-          "refId": "B"
+          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"autoISF_ratio\" \n    or r[\"_field\"] == \"acceISF_ratio\" \n    or r[\"_field\"] == \"bgISF_ratio\"\n    or r[\"_field\"] == \"deltaISF_ratio\"\n    or r[\"_field\"] == \"duraISF_ratio\"\n    or r[\"_field\"] == \"ppISF_ratio\")\n  |> filter(fn: (r) => r._value > 0)\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with \n    _value: if r._field == \"autoISF_ratio\" then r._value else r._value,\n    _measurement: \"\"\n    }))",
+          "refId": "D"
         }
       ],
-      "title": "IOB",
+      "title": "autoISF ",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "isNull",
+                  "options": {}
+                },
+                "fieldName": "pred_cob"
+              }
+            ],
+            "match": "all",
+            "type": "exclude"
+          }
+        }
+      ],
       "type": "timeseries"
     },
     {
@@ -236,7 +330,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -298,7 +393,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
           },
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"treatments\")\n  |> filter(fn: (r) => r[\"_field\"] == \"carbs\" or r[\"_field\"] == \"notes\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"], desc: true)\n  |> group()\n  |> sort(columns: [\"_time\"], desc: true)\n  |> map(fn: (r) => ({ time: time(v:r._time), carbs: r.carbs, notes: r.notes }))",
           "refId": "A"
@@ -381,7 +477,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#da615c"
+                "color": "#da615c",
+                "value": null
               },
               {
                 "color": "#f6c35d",
@@ -430,7 +527,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
           },
           "query": "from(bucket: \"ns\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 2)\n  |> derivative(unit: 5m)\n  |> map(fn: (r) => ({ value: r._value }))",
           "refId": "A"
@@ -438,385 +536,6 @@
       ],
       "title": "Trend",
       "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Mixed --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "fixed"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "left",
-            "axisSoftMax": 250,
-            "axisSoftMin": 0,
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "scheme",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#da615c"
-              },
-              {
-                "color": "#87cd9c",
-                "value": 70
-              },
-              {
-                "color": "#f6c35d",
-                "value": 180
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "bolus"
-            },
-            "properties": [
-              {
-                "id": "custom.drawStyle",
-                "value": "bars"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#104696",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "custom.axisPlacement",
-                "value": "right"
-              },
-              {
-                "id": "min",
-                "value": 0
-              },
-              {
-                "id": "max",
-                "value": 5
-              },
-              {
-                "id": "custom.fillOpacity",
-                "value": 78
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "bg"
-            },
-            "properties": [
-              {
-                "id": "custom.fillOpacity",
-                "value": 0
-              },
-              {
-                "id": "custom.lineWidth",
-                "value": 2
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "thresholds"
-                }
-              },
-              {
-                "id": "custom.thresholdsStyle",
-                "value": {
-                  "mode": "dashed"
-                }
-              },
-              {
-                "id": "custom.drawStyle",
-                "value": "line"
-              },
-              {
-                "id": "custom.showPoints",
-                "value": "never"
-              },
-              {
-                "id": "custom.pointSize",
-                "value": 10
-              },
-              {
-                "id": "custom.lineInterpolation",
-                "value": "smooth"
-              },
-              {
-                "id": "custom.axisPlacement",
-                "value": "left"
-              },
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                }
-              },
-              {
-                "id": "min",
-                "value": 2
-              },
-              {
-                "id": "custom.axisPlacement",
-                "value": "left"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "isf"
-            },
-            "properties": [
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "dash": [
-                    0,
-                    10
-                  ],
-                  "fill": "dot"
-                }
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "light-blue",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "custom.showPoints",
-                "value": "never"
-              },
-              {
-                "id": "custom.lineInterpolation",
-                "value": "stepAfter"
-              },
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                }
-              },
-              {
-                "id": "custom.axisPlacement",
-                "value": "hidden"
-              },
-              {
-                "id": "min"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "target_bg"
-            },
-            "properties": [
-              {
-                "id": "custom.lineInterpolation",
-                "value": "stepAfter"
-              },
-              {
-                "id": "custom.showPoints",
-                "value": "never"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#87cd9c",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "dash": [
-                    25,
-                    10
-                  ],
-                  "fill": "dash"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "activity"
-            },
-            "properties": [
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "dash": [
-                    0,
-                    10
-                  ],
-                  "fill": "dot"
-                }
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "light-yellow",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "max",
-                "value": 17
-              },
-              {
-                "id": "custom.axisPlacement",
-                "value": "hidden"
-              },
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": true,
-                  "viz": false
-                }
-              },
-              {
-                "id": "custom.showPoints",
-                "value": "never"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "basal"
-            },
-            "properties": [
-              {
-                "id": "max",
-                "value": 0
-              },
-              {
-                "id": "custom.axisPlacement",
-                "value": "hidden"
-              },
-              {
-                "id": "min",
-                "value": -2000
-              },
-              {
-                "id": "custom.axisSoftMin",
-                "value": -1500
-              },
-              {
-                "id": "custom.lineInterpolation",
-                "value": "stepAfter"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "dark-blue",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "custom.fillOpacity",
-                "value": 45
-              },
-              {
-                "id": "custom.fillOpacity",
-                "value": 39
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 11,
-        "w": 15,
-        "x": 3,
-        "y": 4
-      },
-      "id": 15,
-      "maxDataPoints": 1000,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb"
-          },
-          "hide": false,
-          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\" \n    or r[\"_field\"] == \"bg\" \n    or r[\"_field\"] == \"isf\"\n    or r[\"_field\"] == \"target_bg\"\n    or r[\"_field\"] == \"activity\")\n  |> filter(fn: (r) => r._value > 0)\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with \n    _value: if r._field == \"bg\" or r._field == \"target_bg\" then r._value else if r._field == \"activity\" then r._value*500.0 else r._value,\n    _measurement: \"\"\n    }))",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "influxdb"
-          },
-          "hide": false,
-          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"treatments\")\n  |> filter(fn: (r) => r[\"type\"] == \"bolus\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bolus\")\n  |> map(fn: (r) => ({ r with \n    _measurement: \"\",\n    _field: if r.smb == \"true\" then \"bolus smb\" else r._field, \n    }))\n  |> drop(columns: [\"type\", \"smb\"])",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "influxdb"
-          },
-          "hide": false,
-          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"treatments\")\n  |> filter(fn: (r) => r[\"type\"] == \"tbs\" and r[\"_field\"] == \"rate\")\n  |> map(fn: (r) => ({ _time: r._time, \"basal\": (r._value * -100.0)}))",
-          "refId": "C"
-        }
-      ],
-      "type": "timeseries"
     },
     {
       "datasource": {
@@ -841,7 +560,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#da615c"
+                "color": "#da615c",
+                "value": null
               },
               {
                 "color": "#f6c35d",
@@ -885,13 +605,149 @@
       "targets": [
         {
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
           },
           "query": "import \"experimental/aggregate\"\n\nt1 = from(bucket: \"ns\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 2)\n  |> derivative(unit: 5m)\n  |> map(fn: (r) => ({ index: 0, name: \"Ⲇ 5m\", value: r._value }))\n\nt2 = from(bucket: \"ns\")\n  |> range(start: -30m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 4)\n  |> derivative(unit: 5m)\n  |> movingAverage(n: 3)\n  |> map(fn: (r) => ({ index: 1, name: \"Ⲇ 15m\", value: r._value }))\n\nt3 = from(bucket: \"ns\")\n  |> range(start: -45m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 9)\n  |> derivative(unit: 5m)\n  |> movingAverage(n: 8)\n  |> map(fn: (r) => ({ index: 2, name: \"Ⲇ 40m\", value: r._value }))\n\nunion(tables: [t3, t2, t1])\n  |> sort(columns: [\"index\"])\n  |> drop(columns: [\"index\"])",
           "refId": "A"
         }
       ],
       "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "mOlbTp5Vz"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "light-blue",
+            "mode": "thresholds"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 35,
+            "gradientMode": "scheme",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "decimals": 1,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "super-light-purple",
+                "value": null
+              },
+              {
+                "color": "blue",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "iob"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#104696",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "basal_iob"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "b-iob"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "iob"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "iob"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 15,
+        "x": 3,
+        "y": 7
+      },
+      "id": 21,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "width": 160
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
+          },
+          "hide": false,
+          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"iob\" or r[\"_field\"] == \"basal_iob\")",
+          "refId": "B"
+        }
+      ],
+      "title": "Basal IOB & Total IOB",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -993,7 +849,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
           },
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> keep(columns: [\"_value\"])\n  |> map(fn: (r) => ({_value: r._value, label: if r._value < 70 then \"low\" else if r._value < 180 then \"normal\" else \"high\" }))\n  |> group(columns: [\"label\"])\n  |> count()\n  |> group()",
           "refId": "A"
@@ -1001,6 +858,412 @@
       ],
       "title": "TIR 70 - 180",
       "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMax": 250,
+            "axisSoftMin": 0,
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "scheme",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#da615c",
+                "value": null
+              },
+              {
+                "color": "#87cd9c",
+                "value": 70
+              },
+              {
+                "color": "#f6c35d",
+                "value": 180
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "bolus"
+            },
+            "properties": [
+              {
+                "id": "custom.drawStyle",
+                "value": "bars"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#104696",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "hidden"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 5
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 78
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "bg"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.thresholdsStyle",
+                "value": {
+                  "mode": "dashed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "always"
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 1
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "smooth"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "hidden"
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              },
+              {
+                "id": "min"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "isf"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    0,
+                    10
+                  ],
+                  "fill": "dot"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-blue",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "hidden"
+              },
+              {
+                "id": "min"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "target_bg"
+            },
+            "properties": [
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#87cd9c",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    25,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 0.4
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "activity"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    0,
+                    10
+                  ],
+                  "fill": "dot"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-yellow",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "max",
+                "value": 17
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "hidden"
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": true,
+                  "viz": false
+                }
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "basal"
+            },
+            "properties": [
+              {
+                "id": "max",
+                "value": 0
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "hidden"
+              },
+              {
+                "id": "min",
+                "value": -2000
+              },
+              {
+                "id": "custom.axisSoftMin",
+                "value": -1500
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-blue",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 45
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 39
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 15,
+        "x": 3,
+        "y": 11
+      },
+      "id": 15,
+      "maxDataPoints": 1000,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "width": 160
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
+          },
+          "hide": false,
+          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\" \n    or r[\"_field\"] == \"bg\" \n    or r[\"_field\"] == \"isf\"\n    or r[\"_field\"] == \"target_bg\"\n    or r[\"_field\"] == \"activity\")\n  |> filter(fn: (r) => r._value > 0)\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with \n    _value: if r._field == \"bg\" or r._field == \"target_bg\" then r._value else if r._field == \"activity\" then r._value*500.0 else r._value,\n    _measurement: \"\"\n    }))",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
+          },
+          "hide": false,
+          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"treatments\")\n  |> filter(fn: (r) => r[\"type\"] == \"bolus\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bolus\")\n  |> map(fn: (r) => ({ r with \n    _measurement: \"\",\n    _field: if r.smb == \"true\" then \"bolus smb\" else r._field, \n    }))\n  |> drop(columns: [\"type\", \"smb\"])",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
+          },
+          "hide": false,
+          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"treatments\")\n  |> filter(fn: (r) => r[\"type\"] == \"tbs\" and r[\"_field\"] == \"rate\")\n  |> map(fn: (r) => ({ _time: r._time, \"basal\": (r._value * -100.0)}))",
+          "refId": "C"
+        }
+      ],
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -1102,7 +1365,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
           },
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> keep(columns: [\"_value\"])\n  |> map(fn: (r) => ({_value: r._value, label: if r._value < 70 then \"low\" else if r._value < 140.4 then \"normal\" else \"high\" }))\n  |> group(columns: [\"label\"])\n  |> count()\n  |> group()",
           "refId": "A"
@@ -1110,94 +1374,6 @@
       ],
       "title": "TIR 70-140",
       "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Mixed --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "semi-dark-blue",
-            "mode": "fixed"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisGridShow": true,
-            "axisLabel": "",
-            "axisPlacement": "left",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 19,
-            "gradientMode": "hue",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "displayName": "24hr rolling TDD",
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#da615c"
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 15,
-        "x": 3,
-        "y": 15
-      },
-      "id": 26,
-      "maxDataPoints": 1000,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb"
-          },
-          "hide": false,
-          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tdd\")\n  |> filter(fn: (r) => r._value > 0)\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |",
-          "refId": "A"
-        }
-      ],
-      "title": "24hr rolling TDD",
-      "type": "timeseries"
     },
     {
       "datasource": {
@@ -1303,7 +1479,7 @@
         "h": 5,
         "w": 12,
         "x": 3,
-        "y": 21
+        "y": 22
       },
       "id": 6,
       "interval": "5m",
@@ -1323,7 +1499,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
           },
           "hide": false,
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"pred_zt\" or r[\"_field\"] == \"pred_uam\" or r[\"_field\"] == \"pred_iob\" or r[\"_field\"] == \"pred_cob\")\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: true)\n  |> fill(value: 0.0)\n  |> map(fn: (r) => ({ r with _value: float(v: r._value), _measurement: \"\" }))",
@@ -1353,7 +1530,8 @@
     },
     {
       "datasource": {
-        "type": "influxdb"
+        "type": "influxdb",
+        "uid": "mOlbTp5Vz"
       },
       "fieldConfig": {
         "defaults": {
@@ -1420,7 +1598,7 @@
         "h": 13,
         "w": 7,
         "x": 15,
-        "y": 21
+        "y": 22
       },
       "id": 25,
       "options": {
@@ -1438,7 +1616,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
           },
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"reason\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group()\n  |> sort(columns: [\"_time\"], desc: true)\n  |> map(fn: (r) => ({ time: time(v:r._time), reason: r.reason }))",
           "refId": "A"
@@ -1529,6 +1708,18 @@
                 "value": 15
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byType",
+              "options": "time"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "auto"
+              }
+            ]
           }
         ]
       },
@@ -1536,7 +1727,7 @@
         "h": 3,
         "w": 12,
         "x": 3,
-        "y": 26
+        "y": 27
       },
       "id": 7,
       "options": {
@@ -1554,7 +1745,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
           },
           "hide": false,
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"dev\" or r[\"_field\"] == \"cob\")\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({ r with _measurement: \"\", is_cob : if r.cob > 0 then 1 else 0, _value: r.dev }))\n  |> filter(fn: (r) => r.is_cob <= 0)\n  |> map(fn: (r) => ({ _time: r._time, dev: r.dev }))",
@@ -1562,7 +1754,8 @@
         },
         {
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
           },
           "hide": false,
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"dev\" or r[\"_field\"] == \"cob\")\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({ r with _measurement: \"\", is_cob : if r.cob > 0 then 1 else 0, _value: r.dev }))\n  |> filter(fn: (r) => r.is_cob > 0)\n  |> map(fn: (r) => ({ _time: r._time, dev_cob: r.dev }))",
@@ -1658,6 +1851,18 @@
                 "value": 0
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byType",
+              "options": "time"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "auto"
+              }
+            ]
           }
         ]
       },
@@ -1665,7 +1870,7 @@
         "h": 5,
         "w": 12,
         "x": 3,
-        "y": 29
+        "y": 30
       },
       "id": 8,
       "options": {
@@ -1683,7 +1888,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
           },
           "hide": false,
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"cob\" or r[\"_field\"] == \"cr\")\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with _measurement: \"\" }))",
@@ -1692,8 +1898,139 @@
       ],
       "title": "cob",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "semi-dark-blue",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisGridShow": true,
+            "axisLabel": "",
+            "axisPlacement": "left",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 19,
+            "gradientMode": "hue",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 1,
+          "displayName": "24hr TDD",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#da615c"
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "isf"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "mvgAvg ISF"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "auto"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 15,
+        "x": 3,
+        "y": 35
+      },
+      "id": 26,
+      "maxDataPoints": 1000,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "width": 150
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "mOlbTp5Vz"
+          },
+          "hide": false,
+          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tdd\" or r[\"_field\"] == \"isf\")\n  |> filter(fn: (r) => r._value > 0)\n  |> timedMovingAverage(every: 5m, period: 1d)\n\n\n\n  |",
+          "refId": "A"
+        }
+      ],
+      "title": "TDD vs. smoothed ISF",
+      "type": "timeseries"
     }
   ],
+  "refresh": "5m",
+  "schemaVersion": 37,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
   "time": {
     "from": "now-6h",
     "to": "now"
@@ -1702,6 +2039,6 @@
   "timezone": "browser",
   "title": "Type1-Data",
   "uid": "8XquEMC7z",
-  "version": 29,
+  "version": 48,
   "weekStart": "monday"
 }
