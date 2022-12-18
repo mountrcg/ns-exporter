@@ -7,13 +7,27 @@ Nightscout exporter to InfluxDB
 You need at least go version 1.17.
 ```
 go build
-./ns-exporter
 ```
-2. docker
+You can test with `./ns-exporter`the output should be:
+```
+total treatments parsed:  0
+total devicestatuses parsed:  0
+total writen:  0
+```
+
+### 2. Create the Docker image
 ```
 docker build -t ns-exporter .
+```
+or with M1/M2 Apple machine use
+```
+docker build --platform linux/amd64 -t ns-exporter .
+```
+test with
+```
 docker run -d ns-exporter:latest
 ```
+### 4. Upload  Docker containerimage if neccesary
 
 So the ns-exporter docker image should now be available on the local machine where you built it. If you did not do all above on a VM you have to upload the image to Docker hub.
 
@@ -29,7 +43,7 @@ So the ns-exporter docker image should now be available on the local machine whe
 
 You have to start with Grafana and Influx container as you have to configure the Influx DB and Grafana before you can deploy the ns-exporter container as it needs the token that you created on Influx DB.
 
-So you can use [docker-compose.yml](https://github.com/mountrcg/ns-exporter/blob/master/docker-compose.yml) but you have to delete the service for ns-exporter in the first deployment. 
+So you can use [docker-compose.yml](https://github.com/mountrcg/ns-exporter/blob/master/docker-compose.yml) but you have to delete the service for ns-exporter in the first deployment.
 
 Make sure not to forget the 2 volume specs, which are on the same level as the services for grafana and influx.
 
@@ -40,11 +54,11 @@ You can also look at [my ns-setup compose file](https://github.com/mountrcg/ns-e
 #### Configure Influx DB & Grafana
 
 Thats the reason I gave Grafana and Influx a subdomain in FreeDNS, so that I can access the webinterfaces. The initial Login for Grafana is admin:admin. Influx is a little more user friendly to start it initially.
-**In Influx DB you have to name the Bucket 'ns'.** You also have to create an API Token, which you need for Grafana to access the Influx DB and also as a paramater to deploy the ns-exporter Docker container. 
-Follow the [explanation to use Grafana with Influx DB](https://docs.influxdata.com/influxdb/v2.3/tools/grafana/?t=InfluxQL#view-and-create-influxdb-v1-authorizations), I use Flux as querry language. 
+**In Influx DB you have to name the Bucket 'ns'.** You also have to create an API Token, which you need for Grafana to access the Influx DB and also as a paramater to deploy the ns-exporter Docker container.
+Follow the [explanation to use Grafana with Influx DB](https://docs.influxdata.com/influxdb/v2.3/tools/grafana/?t=InfluxQL#view-and-create-influxdb-v1-authorizations), I use Flux as querry language.
 
 In Grafana you can import the sample dashboard, that you can tweak: [grafana.json](https://github.com/mountrcg/ns-exporter/blob/master/grafana.json). Mine is in mg/dL, at Justmara's repo you find one in mmol/L.
-I have also taken justmaras latest and adopted it for [FAX with additional variables](https://github.com/mountrcg/ns-exporter/blob/master/grafana-FAX.json), like rolling 24hr TDD and all autoISF adjustments (which I havent put in). But the ns-explorer build is adjusted to transfer all those to Influx. 
+I have also taken justmaras latest and adopted it for [FAX with additional variables](https://github.com/mountrcg/ns-exporter/blob/master/grafana-FAX.json), like rolling 24hr TDD and all autoISF adjustments (which I havent put in). But the ns-explorer build is adjusted to transfer all those to Influx.
 
 #### ns-exporter Docker container config & deployment
 
@@ -86,7 +100,7 @@ arguments also can be provided via env with `NS_EXPORTER_` prefix:
 So you can choose the data source: direct MongoDB or Nightscout REST API. Supplying required set of parameters will trigger related consumer.
 You can even supply both and get from both sources :)
 
-For NS API access you need provide security token. For security reason it is better to go to 'Admin tools' and create special token for NS-Exporter only instead of using admin security key. 
+For NS API access you need provide security token. For security reason it is better to go to 'Admin tools' and create special token for NS-Exporter only instead of using admin security key.
 Since exporter only requires read access, creating role with two permissions will be enough:
 - api:treatments:read
 - api:devicestatus:read
@@ -94,5 +108,5 @@ Since exporter only requires read access, creating role with two permissions wil
 ### Presentation
 
 I'm using Grafana dashboard for viewing data. To setup grafana with InfluxDB you need to follow InfluxDB's [instructions](https://docs.influxdata.com/influxdb/v2.3/tools/grafana/).
-The sample dashboard can be imported from `grafana.json`. It uses both InfluxQL and Flux datasources for different panels. Some can be omitted, some can be reworker based on other InfluxDB datasource query type. 
+The sample dashboard can be imported from `grafana.json`. It uses both InfluxQL and Flux datasources for different panels. Some can be omitted, some can be reworker based on other InfluxDB datasource query type.
 Anyway they're provided as samples, for educational purpose :)
