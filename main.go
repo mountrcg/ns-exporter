@@ -151,18 +151,33 @@ func parseDeviceStatuses(group *sync.WaitGroup, influx chan write.Point, entries
 				AddField("acceISF_ratio", entry.OpenAps.Enacted.AcceISFratio).
 				AddField("autoISF_ratio", entry.OpenAps.Enacted.AutoISFratio)
 
+			// if len(entry.OpenAps.Enacted.PredBGs.COB) > 0 {
+			// 	point.AddField("pred_cob", entry.OpenAps.Enacted.PredBGs.COB[len(entry.OpenAps.Enacted.PredBGs.COB)-1])
+			// }
+			// if len(entry.OpenAps.Enacted.PredBGs.IOB) > 0 {
+			// 	point.AddField("pred_iob", entry.OpenAps.Enacted.PredBGs.IOB[len(entry.OpenAps.Enacted.PredBGs.IOB)-1])
+			// }
+			// if len(entry.OpenAps.Enacted.PredBGs.UAM) > 0 {
+			// 	point.AddField("pred_uam", entry.OpenAps.Enacted.PredBGs.UAM[len(entry.OpenAps.Enacted.PredBGs.UAM)-1])
+			// }
+			// if len(entry.OpenAps.Enacted.PredBGs.ZT) > 0 {
+			// 	point.AddField("pred_zt", entry.OpenAps.Enacted.PredBGs.ZT[len(entry.OpenAps.Enacted.PredBGs.ZT)-1])
+			// }
+
+			// take 90min forecast not 4hrs
 			if len(entry.OpenAps.Enacted.PredBGs.COB) > 0 {
-				point.AddField("pred_cob", entry.OpenAps.Enacted.PredBGs.COB[len(entry.OpenAps.Enacted.PredBGs.COB)-1])
+				point.AddField("pred_cob", entry.OpenAps.Enacted.PredBGs.COB[18-1])
 			}
 			if len(entry.OpenAps.Enacted.PredBGs.IOB) > 0 {
-				point.AddField("pred_iob", entry.OpenAps.Enacted.PredBGs.IOB[len(entry.OpenAps.Enacted.PredBGs.IOB)-1])
+				point.AddField("pred_iob", entry.OpenAps.Enacted.PredBGs.IOB[18-1])
 			}
 			if len(entry.OpenAps.Enacted.PredBGs.UAM) > 0 {
-				point.AddField("pred_uam", entry.OpenAps.Enacted.PredBGs.UAM[len(entry.OpenAps.Enacted.PredBGs.UAM)-1])
+				point.AddField("pred_uam", entry.OpenAps.Enacted.PredBGs.UAM[18-1])
 			}
 			if len(entry.OpenAps.Enacted.PredBGs.ZT) > 0 {
-				point.AddField("pred_zt", entry.OpenAps.Enacted.PredBGs.ZT[len(entry.OpenAps.Enacted.PredBGs.ZT)-1])
+				point.AddField("pred_zt", entry.OpenAps.Enacted.PredBGs.ZT[18-1])
 			}
+
 			if len(entry.OpenAps.Enacted.Reason) > 0 {
 				matches := reg.FindStringSubmatch(entry.OpenAps.Enacted.Reason)
 				names := reg.SubexpNames()
