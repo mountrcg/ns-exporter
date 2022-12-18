@@ -136,6 +136,8 @@ services:
       - influx
     volumes:
       - data-grafana:/var/lib/grafana
+      # you have to put a grafana.ini as custom.ini in your vm at ~/grafana/, this way you can change grafana admin option in that custom.ini
+      - ./grafana/custom.ini:/etc/grafana/grafana.ini
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.grafana.rule=Host(`<yourGrafanaSubdomain>.${NS_DOMAIN}`)'
