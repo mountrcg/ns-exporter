@@ -1,0 +1,186 @@
+version: '3.9'
+
+x-ns-common-env: &ns-common-env
+  NODE_ENV: production
+  INSECURE_USE_HTTP: 'true'
+  TZ: Europe/Berlin
+  TIMEZONE: Europe/Berlin
+  TIME_FORMAT: 24
+  INSECURE_USE_HTTP: 'true'
+  ALARM_HIGH: off
+  ALARM_LOW: off
+  ALARM_TIMEAGO_URGENT: off
+  ALARM_TIMEAGO_WARN: off
+  ALARM_TYPES: predict
+  ALARM_URGENT_HIGH: off
+  ALARM_URGENT_LOW: off
+  API_SECRET: 'j6ao4foRQu2D'
+  AUTH_DEFAULT_ROLES: denied
+  BASAL_RENDER: icicle
+  BG_HIGH: 180
+  BG_LOW: 65
+  BG_TARGET_BOTTOM: 70
+  BG_TARGET_TOP: 140
+  BOLUS_RENDER_FORMAT: minimal
+  BOLUS_RENDER_FORMAT_SMALL: hidden
+  BOLUS_RENDER_OVER: 0.5
+  BRIDGE_INTERVAL: 120000
+  BRIDGE_PASSWORD: kugel4me
+  BRIDGE_USER_NAME: mountrcg_d2
+  BRIDGE_SERVER: EU
+  CORS_ALLOW_ORIGIN: https://nightscout-reporter.zreptil.de
+  DBSIZE_MAX: 5000
+  DEVICESTATUS_ADVANCED: 'true'
+  DEVICESTATUS_DAYS: 1
+  DISABLE: treatmentnotify
+  DISPLAY_UNITS: mg/dl
+  LOOP_ENABLE_ALERTS: 'false'
+  LOOP_URGENT: 30
+  LOOP_WARN: 16
+  OPENAPS_COLOR_PREDICTION_LINES: 'true'
+  OPENAPS_ENABLE_ALERTS: 'false'
+  OPENAPS_FIELDS: status-symbol status-label iob meal-assist rssi
+  OPENAPS_PRED_COB_COLOR: '#f5d549'
+  OPENAPS_PRED_UAM_COLOR: '#ff5500'
+  OPENAPS_RETRO_FIELDS: status-symbol status-label iob meal-assist rssi
+  OPENAPS_URGENT: 27
+  OPENAPS_WARN: 7
+  PUMP_FIELDS: battery reservoir clock status
+  PUMP_RETRO_FIELDS: battery reservoir clock status
+  SAGE_INFO: 192
+  SAGE_URGENT: 238
+  SAGE_WARN: 210
+  SCALE_Y: log-dynamic
+  SHOW_CLOCK_DELTA: 'true'
+  SHOW_CLOCK_LAST_TIME: 'true'
+  SHOW_FORECAST: openaps
+  THEME: colors
+
+volumes:
+  data-grafana-reporter:
+  data-influx-reporter:
+
+services:
+  mongo:
+    image: mongo:4.4
+    restart: always
+    container_name: mongo
+    volumes:
+      - ${NS_MONGO_DATA_DIR:-./mongo-data}:/data/db:cached
+    ports:
+      - "27018:27017"
+
+  traefik:
+    image: traefik:latest
+    container_name: 'traefik'
+    restart: always
+    command:
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--entrypoints.web.address=:80'
+      - '--entrypoints.web.http.redirections.entrypoint.to=websecure'
+      - '--entrypoints.websecure.address=:443'
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - '--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json'
+      - '--certificatesresolvers.le.acme.email=${NS_EMAIL}'
+    ports:
+      - '443:443'
+      - '80:80'
+    volumes:
+      - './letsencrypt:/letsencrypt'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+
+  nightscout-rcgtest:
+    image: mountrcg/cgm-remote-monitor:dev_38cd69c904692966e6270b9274b56ab4aba6c8c5
+    container_name: nightscout-rcgtest
+    restart: always
+    depends_on:
+      - mongo
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.nightscout-rcgtest.rule=Host(`rcg-test.${NS_DOMAIN}`)'
+      - 'traefik.http.routers.nightscout-rcgtest.entrypoints=web'
+      - 'traefik.http.routers.nightscout-rcgtest.entrypoints=websecure'
+      - 'traefik.http.routers.nightscout-rcgtest.tls.certresolver=le'
+    environment:
+      <<: *ns-common-env
+      CUSTOM_TITLE: 'Type1-Data'
+      AUTH_DEFAULT_ROLES: readable
+      MONGO_CONNECTION: mongodb://mongo:27017/ns-rcgtest
+      ENABLE: basal bridge iob cob boluscalc cage sage iage bage pump openaps bgi food rawbg dbsize
+      SHOW_PLUGINS: iob cob careportal basal override sage cage openaps dbsize
+
+  nightscout-rcgloop:
+    image: mountrcg/cgm-remote-monitor:latest_dev
+    container_name: nightscout-rcgloop
+    restart: always
+    depends_on:
+      - mongo
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.nightscout-rcgloop.rule=Host(`rcg-loop.${NS_DOMAIN}`)'
+      - 'traefik.http.routers.nightscout-rcgloop.entrypoints=web'
+      - 'traefik.http.routers.nightscout-rcgloop.entrypoints=websecure'
+      - 'traefik.http.routers.nightscout-rcgloop.tls.certresolver=le'
+    environment:
+      <<: *ns-common-env
+      CUSTOM_TITLE: 'RCG Loop'
+      AUTH_DEFAULT_ROLES: denied
+      MONGO_CONNECTION: mongodb://mongo:27017/ns-rcgloop
+      ENABLE: basal iob cob boluscalc cage sage iage bage pump openaps bgi rawbg dbsize
+      SHOW_PLUGINS: iob cob careportal basal sage cage openaps dbsize
+
+
+  grafana-reporter:
+    image: grafana/grafana-oss:latest
+    container_name: grafana-reporter
+    restart: always
+    depends_on:
+      - influx-reporter
+    volumes:
+      - data-grafana-reporter:/var/lib/grafana
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.grafana-reporter.rule=Host(`rcg-grafana.${NS_DOMAIN}`)'
+      - 'traefik.http.routers.grafana-reporter.entrypoints=web'
+      - 'traefik.http.routers.grafana-reporter.entrypoints=websecure'
+      - 'traefik.http.routers.grafana-reporter.tls.certresolver=le'
+    ports:
+      - 3000:3000
+
+  influx-reporter:
+    image: influxdb:latest
+    container_name: influx-reporter
+    restart: always
+    volumes:
+      - data-influx-reporter:/var/lib/influxdb2
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.influx-reporter.rule=Host(`rcg-influx.${NS_DOMAIN}`)'
+      - 'traefik.http.routers.influx-reporter.entrypoints=web'
+      - 'traefik.http.routers.influx-reporter.entrypoints=websecure'
+      - 'traefik.http.routers.influx-reporter.tls.certresolver=le'
+    ports:
+      - 8086:8086
+
+  ns-exporter:
+    image: mountrcg/ns-exporter:latest
+    container_name: ns-exporter
+    restart: unless-stopped
+    environment:
+      - NS_EXPORTER_MONGO_URI=${NS_EXPORTER_MONGO_URI:-mongodb://mongo:27017}
+      - NS_EXPORTER_MONGO_DB=${NS_EXPORTER_MONGO_DB:-ns-rcgloop}
+      - NS_EXPORTER_INFLUX_URI=${NS_EXPORTER_INFLUX_URI:-http://influx-reporter:8086}
+      - NS_EXPORTER_INFLUX_TOKEN=vCH1c_AVsTiw6FUJ6P2H5nD8lJehp-VQiS2YnUc5AqgEf0rZY304KRnqIQ9_IcWdafj97TJZBEuFAYezOsJyVw==
+      - NS_EXPORTER_INFLUX_ORG=nightscout
+      - NS_EXPORTER_INFLUX_BUCKET=ns
+      - NS_EXPORTER_LIMIT=3
+      - NS_EXPORTER_SKIP=0
+    depends_on:
+      - influx-reporter
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.ns-exporter.entrypoints=web'
+      - 'traefik.http.routers.ns-exporter.entrypoints=websecure'
+      - 'traefik.http.routers.ns-exporter.tls.certresolver=le'
