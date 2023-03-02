@@ -1,67 +1,12 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_INFLUXDB",
-      "label": "InfluxDB",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "influxdb",
-      "pluginName": "InfluxDB"
-    }
-  ],
-  "__elements": {},
-  "__requires": [
-    {
-      "type": "panel",
-      "id": "bargauge",
-      "name": "Bar gauge",
-      "version": ""
-    },
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "9.3.2"
-    },
-    {
-      "type": "datasource",
-      "id": "influxdb",
-      "name": "InfluxDB",
-      "version": "1.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "piechart",
-      "name": "Pie chart",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "stat",
-      "name": "Stat",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "table",
-      "name": "Table",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "timeseries",
-      "name": "Time series",
-      "version": ""
-    }
-  ],
   "annotations": {
     "list": [
       {
         "datasource": {
           "type": "influxdb",
-          "uid": "${DS_INFLUXDB}"
+          "uid": "C3WizfA4z"
         },
-        "enable": false,
+        "enable": true,
         "iconColor": "#ff983047",
         "mappings": {
           "text": {
@@ -99,14 +44,14 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 2,
-  "id": null,
+  "id": 16,
   "links": [],
   "liveNow": false,
   "panels": [
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "C3WizfA4z"
       },
       "fieldConfig": {
         "defaults": {
@@ -157,12 +102,12 @@
         },
         "textMode": "value"
       },
-      "pluginVersion": "9.3.2",
+      "pluginVersion": "9.3.6",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\" )\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with \n    _value: r._value,\n    _measurement: \"\"\n    }))",
           "refId": "A"
@@ -312,7 +257,7 @@
         ]
       },
       "gridPos": {
-        "h": 7,
+        "h": 11,
         "w": 15,
         "x": 3,
         "y": 0
@@ -339,7 +284,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "hide": false,
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"autoISF_ratio\" \n    or r[\"_field\"] == \"acceISF_ratio\" \n    or r[\"_field\"] == \"bgISF_ratio\"\n    or r[\"_field\"] == \"deltaISF_ratio\"\n    or r[\"_field\"] == \"duraISF_ratio\"\n    or r[\"_field\"] == \"ppISF_ratio\")\n  |> filter(fn: (r) => r._value > 0)\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with \n    _value: if r._field == \"autoISF_ratio\" then r._value else r._value,\n    _measurement: \"\"\n    }))",
@@ -370,7 +315,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "C3WizfA4z"
       },
       "fieldConfig": {
         "defaults": {
@@ -427,8 +372,8 @@
         ]
       },
       "gridPos": {
-        "h": 15,
-        "w": 4,
+        "h": 7,
+        "w": 6,
         "x": 18,
         "y": 0
       },
@@ -444,24 +389,25 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "9.3.2",
+      "pluginVersion": "9.3.6",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"treatments\")\n  |> filter(fn: (r) => r[\"_field\"] == \"carbs\" or r[\"_field\"] == \"notes\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"], desc: true)\n  |> group()\n  |> sort(columns: [\"_time\"], desc: true)\n  |> map(fn: (r) => ({ time: time(v:r._time), carbs: r.carbs, notes: r.notes }))",
           "refId": "A"
         }
       ],
+      "timeFrom": "10d",
       "title": "food & notes",
       "type": "table"
     },
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "C3WizfA4z"
       },
       "description": "",
       "fieldConfig": {
@@ -578,12 +524,12 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "9.3.2",
+      "pluginVersion": "9.3.6",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "query": "from(bucket: \"ns\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 2)\n  |> derivative(unit: 5m)\n  |> map(fn: (r) => ({ value: r._value }))",
           "refId": "A"
@@ -595,7 +541,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "C3WizfA4z"
       },
       "fieldConfig": {
         "defaults": {
@@ -653,12 +599,12 @@
         "showUnfilled": true,
         "text": {}
       },
-      "pluginVersion": "9.3.2",
+      "pluginVersion": "9.3.6",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "query": "import \"experimental/aggregate\"\n\nt1 = from(bucket: \"ns\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 2)\n  |> derivative(unit: 5m)\n  |> map(fn: (r) => ({ index: 0, name: \"Ⲇ 5m\", value: r._value }))\n\nt2 = from(bucket: \"ns\")\n  |> range(start: -30m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 4)\n  |> derivative(unit: 5m)\n  |> movingAverage(n: 3)\n  |> map(fn: (r) => ({ index: 1, name: \"Ⲇ 15m\", value: r._value }))\n\nt3 = from(bucket: \"ns\")\n  |> range(start: -45m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> limit(n: 9)\n  |> derivative(unit: 5m)\n  |> movingAverage(n: 8)\n  |> map(fn: (r) => ({ index: 2, name: \"Ⲇ 40m\", value: r._value }))\n\nunion(tables: [t3, t2, t1])\n  |> sort(columns: [\"index\"])\n  |> drop(columns: [\"index\"])",
           "refId": "A"
@@ -669,56 +615,25 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "C3WizfA4z"
       },
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "light-blue",
             "mode": "thresholds"
           },
           "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 35,
-            "gradientMode": "scheme",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "smooth",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "line"
-            }
+            "align": "auto",
+            "displayMode": "color-text",
+            "inspect": true
           },
-          "decimals": 1,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "super-light-purple",
+                "color": "green",
                 "value": null
-              },
-              {
-                "color": "blue",
-                "value": 0
               }
             ]
           }
@@ -727,13 +642,21 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "iob"
+              "options": "time"
             },
             "properties": [
               {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "unit",
+                "value": "dateTimeAsIsoNoDateIfToday"
+              },
+              {
                 "id": "color",
                 "value": {
-                  "fixedColor": "#104696",
+                  "fixedColor": "light-blue",
                   "mode": "fixed"
                 }
               }
@@ -742,69 +665,56 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "basal_iob"
+              "options": "reason"
             },
             "properties": [
               {
-                "id": "displayName",
-                "value": "b-iob"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "iob"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "iob"
+                "id": "color",
+                "value": {
+                  "fixedColor": "#919191",
+                  "mode": "fixed"
+                }
               }
             ]
           }
         ]
       },
       "gridPos": {
-        "h": 4,
-        "w": 15,
-        "x": 3,
+        "h": 28,
+        "w": 6,
+        "x": 18,
         "y": 7
       },
-      "id": 21,
+      "id": 25,
       "options": {
-        "legend": {
-          "calcs": [
-            "last"
+        "footer": {
+          "fields": "",
+          "reducer": [
+            "sum"
           ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "width": 160
+          "show": false
         },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
+        "showHeader": true,
+        "sortBy": []
       },
+      "pluginVersion": "9.3.6",
       "targets": [
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
-          "hide": false,
-          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"iob\" or r[\"_field\"] == \"basal_iob\")",
-          "refId": "B"
+          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"reason\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group()\n  |> sort(columns: [\"_time\"], desc: true)\n  |> map(fn: (r) => ({ time: time(v:r._time), reason: r.reason }))",
+          "refId": "A"
         }
       ],
-      "title": "Basal IOB & Total IOB",
-      "type": "timeseries"
+      "title": "OpenAPS",
+      "type": "table"
     },
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "C3WizfA4z"
       },
       "fieldConfig": {
         "defaults": {
@@ -902,7 +812,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> keep(columns: [\"_value\"])\n  |> map(fn: (r) => ({_value: r._value, label: if r._value < 70 then \"low\" else if r._value < 180 then \"normal\" else \"high\" }))\n  |> group(columns: [\"label\"])\n  |> count()\n  |> group()",
           "refId": "A"
@@ -910,6 +820,141 @@
       ],
       "title": "TIR 70 - 180",
       "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "C3WizfA4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "light-blue",
+            "mode": "thresholds"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 35,
+            "gradientMode": "scheme",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "decimals": 1,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "super-light-purple",
+                "value": null
+              },
+              {
+                "color": "blue",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "iob"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#104696",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "basal_iob"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "b-iob"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "iob"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "iob"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 15,
+        "x": 3,
+        "y": 11
+      },
+      "id": 21,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "width": 160
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "C3WizfA4z"
+          },
+          "hide": false,
+          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"iob\" or r[\"_field\"] == \"basal_iob\")",
+          "refId": "B"
+        }
+      ],
+      "title": "Basal IOB & Total IOB",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -1268,10 +1313,10 @@
         ]
       },
       "gridPos": {
-        "h": 11,
+        "h": 17,
         "w": 15,
         "x": 3,
-        "y": 11
+        "y": 16
       },
       "id": 15,
       "maxDataPoints": 1000,
@@ -1294,7 +1339,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "hide": false,
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\" \n    or r[\"_field\"] == \"bg\" \n    or r[\"_field\"] == \"isf\"\n    or r[\"_field\"] == \"target_bg\"\n    or r[\"_field\"] == \"activity\")\n  |> filter(fn: (r) => r._value > 0)\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with \n    _value: if r._field == \"bg\" or r._field == \"target_bg\" then r._value else if r._field == \"activity\" then r._value*500.0 else r._value,\n    _measurement: \"\"\n    }))",
@@ -1303,7 +1348,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "hide": false,
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"treatments\")\n  |> filter(fn: (r) => r[\"type\"] == \"bolus\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bolus\")\n  |> map(fn: (r) => ({ r with \n    _measurement: \"\",\n    _field: if r.smb == \"true\" then \"bolus smb\" else r._field, \n    }))\n  |> drop(columns: [\"type\", \"smb\"])",
@@ -1312,7 +1357,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "hide": false,
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"treatments\")\n  |> filter(fn: (r) => r[\"type\"] == \"tbs\" and r[\"_field\"] == \"rate\")\n  |> map(fn: (r) => ({ _time: r._time, \"basal\": (r._value * -100.0)}))",
@@ -1324,7 +1369,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "C3WizfA4z"
       },
       "fieldConfig": {
         "defaults": {
@@ -1389,7 +1434,7 @@
         ]
       },
       "gridPos": {
-        "h": 6,
+        "h": 7,
         "w": 3,
         "x": 0,
         "y": 17
@@ -1422,7 +1467,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> keep(columns: [\"_value\"])\n  |> map(fn: (r) => ({_value: r._value, label: if r._value < 70 then \"low\" else if r._value < 140.4 then \"normal\" else \"high\" }))\n  |> group(columns: [\"label\"])\n  |> count()\n  |> group()",
           "refId": "A"
@@ -1430,6 +1475,133 @@
       ],
       "title": "TIR 70-140",
       "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "description": "use longer timeframe, at least 7 days",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "semi-dark-blue",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisGridShow": true,
+            "axisLabel": "",
+            "axisPlacement": "left",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 19,
+            "gradientMode": "hue",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 1,
+          "displayName": "24hr TDD",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#da615c",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "isf"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "mvgAvg ISF"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "auto"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 15,
+        "x": 3,
+        "y": 33
+      },
+      "id": 26,
+      "maxDataPoints": 1000,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "width": 150
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "C3WizfA4z"
+          },
+          "hide": false,
+          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tdd\" or r[\"_field\"] == \"isf\")\n  |> filter(fn: (r) => r._value > 0)\n  |> timedMovingAverage(every: 5m, period: 1d)\n\n\n\n  |",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": "7d",
+      "title": "TDD vs. smoothed ISF",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -1596,9 +1768,9 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 12,
+        "w": 21,
         "x": 3,
-        "y": 22
+        "y": 40
       },
       "id": 6,
       "interval": "5m",
@@ -1619,7 +1791,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "hide": false,
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"bg\")\n  |> filter(fn: (r) => r._value > 0)\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: false)\n",
@@ -1628,7 +1800,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "hide": false,
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"pred_zt\" or r[\"_field\"] == \"pred_uam\" or r[\"_field\"] == \"pred_iob\")\n  |> filter(fn: (r) => r._value > 0)\n  |> timeShift(duration: 90m)\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: false)\n",
@@ -1659,106 +1831,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "displayMode": "color-text",
-            "inspect": true
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "time"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 90
-              },
-              {
-                "id": "unit",
-                "value": "dateTimeAsIsoNoDateIfToday"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "light-blue",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "reason"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#919191",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 13,
-        "w": 7,
-        "x": 15,
-        "y": 22
-      },
-      "id": 25,
-      "options": {
-        "footer": {
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true,
-        "sortBy": []
-      },
-      "pluginVersion": "9.3.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
-          },
-          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"reason\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group()\n  |> sort(columns: [\"_time\"], desc: true)\n  |> map(fn: (r) => ({ time: time(v:r._time), reason: r.reason }))",
-          "refId": "A"
-        }
-      ],
-      "title": "reasons",
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "C3WizfA4z"
       },
       "fieldConfig": {
         "defaults": {
@@ -1854,10 +1927,10 @@
         ]
       },
       "gridPos": {
-        "h": 3,
-        "w": 12,
+        "h": 4,
+        "w": 21,
         "x": 3,
-        "y": 27
+        "y": 45
       },
       "id": 7,
       "options": {
@@ -1876,7 +1949,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "hide": false,
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"dev\" or r[\"_field\"] == \"cob\")\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({ r with _measurement: \"\", is_cob : if r.cob > 0 then 1 else 0, _value: r.dev }))\n  |> filter(fn: (r) => r.is_cob <= 0)\n  |> map(fn: (r) => ({ _time: r._time, dev: r.dev }))",
@@ -1885,7 +1958,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "hide": false,
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"dev\" or r[\"_field\"] == \"cob\")\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({ r with _measurement: \"\", is_cob : if r.cob > 0 then 1 else 0, _value: r.dev }))\n  |> filter(fn: (r) => r.is_cob > 0)\n  |> map(fn: (r) => ({ _time: r._time, dev_cob: r.dev }))",
@@ -1898,7 +1971,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "C3WizfA4z"
       },
       "fieldConfig": {
         "defaults": {
@@ -1942,8 +2015,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "dark-red",
@@ -1999,9 +2071,9 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 12,
+        "w": 21,
         "x": 3,
-        "y": 30
+        "y": 49
       },
       "id": 8,
       "options": {
@@ -2020,7 +2092,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "C3WizfA4z"
           },
           "hide": false,
           "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"cob\" or r[\"_field\"] == \"cr\")\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with _measurement: \"\" }))",
@@ -2029,143 +2101,20 @@
       ],
       "title": "cob",
       "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Mixed --"
-      },
-      "description": "use longer timeframe, at least 7 days",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "semi-dark-blue",
-            "mode": "fixed"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisGridShow": true,
-            "axisLabel": "",
-            "axisPlacement": "left",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 19,
-            "gradientMode": "hue",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "decimals": 1,
-          "displayName": "24hr TDD",
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#da615c",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "isf"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "mvgAvg ISF"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "palette-classic"
-                }
-              },
-              {
-                "id": "custom.fillOpacity",
-                "value": 0
-              },
-              {
-                "id": "custom.axisPlacement",
-                "value": "auto"
-              },
-              {
-                "id": "decimals",
-                "value": 0
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 15,
-        "x": 3,
-        "y": 35
-      },
-      "id": 26,
-      "maxDataPoints": 1000,
-      "options": {
-        "legend": {
-          "calcs": [
-            "last"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "width": 150
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
-          },
-          "hide": false,
-          "query": "from(bucket: \"ns\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"openaps\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tdd\" or r[\"_field\"] == \"isf\")\n  |> filter(fn: (r) => r._value > 0)\n  |> timedMovingAverage(every: 5m, period: 1d)\n\n\n\n  |",
-          "refId": "A"
-        }
-      ],
-      "title": "TDD vs. smoothed ISF",
-      "type": "timeseries"
     }
   ],
   "refresh": "5m",
   "schemaVersion": 37,
   "style": "dark",
-  "tags": [],
+  "tags": [
+    "autoISF",
+    "oref"
+  ],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-24h",
     "to": "now"
   },
   "timepicker": {
@@ -2182,6 +2131,6 @@
   "timezone": "browser",
   "title": "Type1-Data",
   "uid": "8XquEMC7z",
-  "version": 56,
+  "version": 9,
   "weekStart": "monday"
 }
