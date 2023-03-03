@@ -27,7 +27,7 @@ test with
 ```
 docker run -d ns-exporter:latest
 ```
-### 4. Upload  Docker containerimage if neccesary
+### 3. Upload  Docker containerimage if neccesary
 
 So the ns-exporter docker image should now be available on the local machine where you built it. If you did not do all above on a VM you have to upload the image to Docker hub.
 
@@ -37,7 +37,11 @@ So the ns-exporter docker image should now be available on the local machine whe
  docker push <yourDockerhubAccount>/ns-exporter:latest
 ```
 
-### 3. Deploy Docker containers
+For FreeAPS-X and the reporting of autoISF-Ratios this commit is adjusted and a ns-exporter image is available at docker-hub with:
+`image: mountrcg/ns-exporter:enacted90`
+So with that you could skip the Create Docker image Step.
+
+### 4. Deploy Docker containers
 
 #### Grafana & Influx DB
 
@@ -58,11 +62,19 @@ Thats the reason I gave Grafana and Influx a subdomain in FreeDNS, so that I can
 Follow the [explanation to use Grafana with Influx DB](https://docs.influxdata.com/influxdb/v2.3/tools/grafana/?t=InfluxQL#view-and-create-influxdb-v1-authorizations), I use Flux as querry language.
 
 In Grafana you can import the sample dashboard, that you can tweak: [grafana.json](https://github.com/mountrcg/ns-exporter/blob/master/grafana.json). Mine is in mg/dL, at Justmara's repo you find one in mmol/L.
-I have also taken justmaras latest and adopted it for [FAX with additional variables](https://github.com/mountrcg/ns-exporter/blob/master/grafana-FAX.json), like rolling 24hr TDD and all autoISF adjustments (which I havent put in). But the ns-explorer build is adjusted to transfer all those to Influx.
+I have also taken justmaras latest and adopted it for [FAX with additional variables](https://github.com/mountrcg/ns-exporter/blob/dev-autoISF/grafana-FAX.json), like rolling 24hr TDD and all autoISF adjustments (which I havent put in). But the ns-explorer build is adjusted to transfer all those to Influx.
+If you want to make that all im mmol/l you will have to look at this [commit](https://github.com/mountrcg/ns-exporter/commit/e1b8355f6071843a48fd4266df81dfcfbe0c0b77) to re-integrate the calculation. Be aware lot of times people use `mmol/L * 18 = md/dL`. To be correct I would use `mmol/L / 0.0555 = mg/dL`.  Of course this all works only after the next step deploying the ns-exporter container.
+
+I have also integrated a performance monitoring for linux based servers and docker containers, using the containers
+* Prometheus
+* node-exporter
+* cadvisor
+
+in the `docker-compose.yml`. The [dashboard file](https://github.com/mountrcg/ns-exporter/blob/dev-autoISF/grafana-PerformanceMonitor.json) can imported in Grafana the usual way. Of course this can be omitted/deleted.
 
 #### ns-exporter Docker container config & deployment
 
-So now you can configure the token for Influx DB in the ns-exporter variable in docker-compose.yml and deploy the last container. I did connect to mongo directly so did not configure the nightscout variables. You can check in Influx whether data is arriving, if all is fine it just takes a couple of seconds before the ns bucket fills with data.
+So now you can configure the token for Influx DB in the ns-exporter variable in docker-compose.yml and deploy the last container. I did connect to mongo directly so did not configure the nightscout variables. You can check in Influx whether data is arriving, if all is fine it just takes a couple of seconds before the ns bucket fills with data. As said above you could use the image at Dockerhub if you are running FreeAPS-X `image: mountrcg/ns-exporter:enacted90`.
 
 ![view Dashboard](./ns-setup/Grafana-mgdl.png)
 
