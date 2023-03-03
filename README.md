@@ -58,6 +58,9 @@ You can also look at [my ns-setup compose file](https://github.com/mountrcg/ns-e
 #### Configure Influx DB & Grafana
 
 Thats the reason I gave Grafana and Influx a subdomain in FreeDNS, so that I can access the webinterfaces. The initial Login for Grafana is admin:admin. Influx is a little more user friendly to start it initially.
+
+In current setup I have put Grafana and Inlux on the the same subdomain and used a 2nd traeffic websecure entry point for Influx website. So, one reaches Grafana at ports 80 and 443 , Influx can be reached at port 8443.
+
 **In Influx DB you have to name the Bucket 'ns'.** You also have to create an API Token, which you need for Grafana to access the Influx DB and also as a paramater to deploy the ns-exporter Docker container.
 Follow the [explanation to use Grafana with Influx DB](https://docs.influxdata.com/influxdb/v2.3/tools/grafana/?t=InfluxQL#view-and-create-influxdb-v1-authorizations), I use Flux as querry language.
 
@@ -72,11 +75,14 @@ I have also integrated a performance monitoring for linux based servers and dock
 
 in the `docker-compose.yml`. The [dashboard file](https://github.com/mountrcg/ns-exporter/blob/dev-autoISF/grafana-PerformanceMonitor.json) can imported in Grafana the usual way. Of course this can be omitted/deleted.
 
+![view PerfDashboard](./ns-setup/Grafana-PerformanceDashboard.png)
+
+
 #### ns-exporter Docker container config & deployment
 
 So now you can configure the token for Influx DB in the ns-exporter variable in docker-compose.yml and deploy the last container. I did connect to mongo directly so did not configure the nightscout variables. You can check in Influx whether data is arriving, if all is fine it just takes a couple of seconds before the ns bucket fills with data. As said above you could use the image at Dockerhub if you are running FreeAPS-X `image: mountrcg/ns-exporter:enacted90`.
 
-![view Dashboard](./ns-setup/Grafana-mgdl.png)
+![view Dashboard](./ns-setup/Grafana-autoISFDashboard.png)
 
 ## Some Config topics
 
