@@ -23,6 +23,12 @@ or with M1/M2 Apple machine use
 ```
 docker build --platform linux/amd64 -t ns-exporter .
 ```
+I encountered an error lately on MacOSX with new Docker install:
+```
+ERROR: failed to solve: djpic/cron:standard: error getting credentials - err: exit status 1, out: ' '
+```
+which I was able to resolve with this [solution](https://github.com/docker/docker-credential-helpers/issues/60#issuecomment-1622539853)
+
 test with
 ```
 docker run -d ns-exporter:latest

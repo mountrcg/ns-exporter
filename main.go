@@ -249,7 +249,7 @@ func parseTreatments(group *sync.WaitGroup, influx chan write.Point, entries cha
 			point.
 				AddField("bolus", entry.Insulin).
 				AddTag(tagName, "bolus").
-				AddTag("smb", strconv.FormatBool(entry.IsSMB))
+				AddTag("smb", strconv.FormatBool(entry.Bolus.IsSMB))
 		}
 		if entry.EventType == "Temp Basal" {
 			point.

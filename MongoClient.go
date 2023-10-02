@@ -78,7 +78,7 @@ func (c MongoClient) LoadDeviceStatuses(queue chan NsEntry, limit int64, skip in
 			fmt.Println(cur.Current.String())
 			log.Fatal(err)
 		}
-		entry.User = c.user
+		// entry.User = c.user
 		if entry.OpenAps.Enacted.Bg > 0 {
 			field := cur.Current.Lookup("openaps", "enacted", "tick")
 			var tick float64 = 0
