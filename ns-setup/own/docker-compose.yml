@@ -6,7 +6,6 @@ x-ns-common-env: &ns-common-env
   TZ: Europe/Berlin
   TIMEZONE: Europe/Berlin
   TIME_FORMAT: 24
-  INSECURE_USE_HTTP: 'true'
   ALARM_HIGH: off
   ALARM_LOW: off
   ALARM_TIMEAGO_URGENT: off
@@ -15,7 +14,6 @@ x-ns-common-env: &ns-common-env
   ALARM_URGENT_HIGH: off
   ALARM_URGENT_LOW: off
   API_SECRET: 'j6ao4foRQu2D'
-  AUTH_DEFAULT_ROLES: denied
   BASAL_RENDER: icicle
   BG_HIGH: 180
   BG_LOW: 65
@@ -24,8 +22,8 @@ x-ns-common-env: &ns-common-env
   BOLUS_RENDER_FORMAT: minimal
   BOLUS_RENDER_FORMAT_SMALL: hidden
   BOLUS_RENDER_OVER: 0.5
-  BRIDGE_INTERVAL: 120000
-  BRIDGE_PASSWORD: kugel4me
+  BRIDGE_INTERVAL: 10000
+  BRIDGE_PASSWORD: Uhd4meandyou!
   BRIDGE_USER_NAME: mountrcg_d2
   BRIDGE_SERVER: EU
   CORS_ALLOW_ORIGIN: https://nightscout-reporter.zreptil.de
@@ -59,6 +57,15 @@ x-ns-common-env: &ns-common-env
 volumes:
   data-grafana:
   data-influx:
+  loki-data: null
+  nocturne-postgres-data:
+
+x-logging:
+  &default-logging
+  options:
+    max-size: '10m'
+    max-file: '5'
+  driver: json-file
 
 services:
   mongo:
@@ -67,19 +74,24 @@ services:
     container_name: mongo
     volumes:
       - ${NS_MONGO_DATA_DIR:-./mongo-data}:/data/db:cached
-    ports:
-      - "27018:27017"
+    logging: *default-logging
 
   traefik:
     image: traefik:latest
     container_name: 'traefik'
     restart: always
     command:
+      - "--log.level=DEBUG"
+      - "--api.dashboard=true"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.buckets=0.1,0.3,1.2,5.0"
+      - "--providers.docker.watch"
       - '--providers.docker=true'
       - '--providers.docker.exposedbydefault=false'
       - '--entrypoints.web.address=:80'
-      - '--entrypoints.web.http.redirections.entrypoint.to=websecure'
       - '--entrypoints.websecure.address=:443'
+      - '--entrypoints.web.http.redirections.entrypoint.to=websecure'
+      - '--entrypoints.websecure2.address=:8443'
       - "--certificatesresolvers.le.acme.httpchallenge=true"
       - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
       - '--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json'
@@ -87,12 +99,23 @@ services:
     ports:
       - '443:443'
       - '80:80'
+      - '8443:8443'
+      - '8080:8080'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${NS_DOMAIN}`)"
+      - "traefik.http.routers.traefik.middlewares=traefik-auth"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=robert:$$apr1$$Jji2nx66$$HmHUii/TJs/AfbiqEM9gj."
+      - "traefik.http.routers.traefik.tls.certresolver=le"
+      - "traefik.http.routers.traefik.service=api@internal"
     volumes:
       - './letsencrypt:/letsencrypt'
       - '/var/run/docker.sock:/var/run/docker.sock:ro'
+    logging: *default-logging
 
   rcgtest:
-    image: mountrcg/cgm-remote-monitor:dev_staging
+    image: mountrcg/nightscout:latest_dev
     container_name: rcgtest
     restart: always
     depends_on:
@@ -100,7 +123,6 @@ services:
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.rcgtest.rule=Host(`rcg-test.${NS_DOMAIN}`)'
-      - 'traefik.http.routers.rcgtest.entrypoints=web'
       - 'traefik.http.routers.rcgtest.entrypoints=websecure'
       - 'traefik.http.routers.rcgtest.tls.certresolver=le'
     environment:
@@ -110,9 +132,10 @@ services:
       MONGO_CONNECTION: mongodb://mongo:27017/ns-rcgtest
       ENABLE: basal bridge iob cob boluscalc cage sage iage bage pump openaps bgi food rawbg dbsize
       SHOW_PLUGINS: iob cob careportal basal override sage cage openaps dbsize
+    logging: *default-logging
 
   rcgloop:
-    image: mountrcg/cgm-remote-monitor:latest_dev
+    image: mountrcg/nightscout:latest_dev
     container_name: rcgloop
     restart: always
     depends_on:
@@ -120,7 +143,6 @@ services:
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.rcgloop.rule=Host(`rcg-loop.${NS_DOMAIN}`)'
-      - 'traefik.http.routers.rcgloop.entrypoints=web'
       - 'traefik.http.routers.rcgloop.entrypoints=websecure'
       - 'traefik.http.routers.rcgloop.tls.certresolver=le'
     environment:
@@ -130,6 +152,7 @@ services:
       MONGO_CONNECTION: mongodb://mongo:27017/ns-rcgloop
       ENABLE: basal iob cob boluscalc cage sage iage bage pump openaps bgi rawbg dbsize
       SHOW_PLUGINS: iob cob careportal basal sage cage openaps dbsize
+    logging: *default-logging
 
   grafana:
     image: grafana/grafana-oss:latest
@@ -137,17 +160,18 @@ services:
     restart: always
     depends_on:
       - influx
+      - prometheus
     volumes:
       - data-grafana:/var/lib/grafana
-      - ./grafana/custom.ini:/etc/grafana/grafana.ini
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.grafana.rule=Host(`rcg-grafana.${NS_DOMAIN}`)'
-      - 'traefik.http.routers.grafana.entrypoints=web'
+      - 'traefik.http.routers.grafana.rule=Host(`rcg-dashboard.${NS_DOMAIN}`)'
       - 'traefik.http.routers.grafana.entrypoints=websecure'
       - 'traefik.http.routers.grafana.tls.certresolver=le'
+      - 'traefik.http.services.grafana.loadbalancer.server.port=3000'
     ports:
       - 3000:3000
+    logging: *default-logging
 
   influx:
     image: influxdb:latest
@@ -157,23 +181,62 @@ services:
       - data-influx:/var/lib/influxdb2
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.influx.rule=Host(`rcg-influx.${NS_DOMAIN}`)'
-      - 'traefik.http.routers.influx.entrypoints=web'
-      - 'traefik.http.routers.influx.entrypoints=websecure'
+      - 'traefik.http.routers.influx.rule=Host(`rcg-dashboard.${NS_DOMAIN}`)'
+      - 'traefik.http.routers.influx.entrypoints=websecure2'
       - 'traefik.http.routers.influx.tls.certresolver=le'
+      - 'traefik.http.services.influx.loadbalancer.server.port=8086'
     ports:
       - 8086:8086
+    logging: *default-logging
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./grafana/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - node-exporter
+      - cadvisor
+    logging: *default-logging
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.ignored-mount-points=^(/rootfs|/host|)/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.filesystem.ignored-fs-types=^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs|)$$'
+    logging: *default-logging
+
+  cadvisor:
+    image: google/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    logging: *default-logging
 
   ns-exporter:
-    image: mountrcg/ns-exporter:enacted90
+    image: mountrcg/ns-exporter:latest
     container_name: ns-exporter
     restart: unless-stopped
     environment:
       - NS_EXPORTER_MONGO_URI=${NS_EXPORTER_MONGO_URI:-mongodb://mongo:27017}
       - NS_EXPORTER_MONGO_DB=${NS_EXPORTER_MONGO_DB:-ns-rcgloop}
       - NS_EXPORTER_INFLUX_URI=${NS_EXPORTER_INFLUX_URI:-http://influx:8086}
-      - NS_EXPORTER_INFLUX_TOKEN=QIyr2EJrOva9eC-cgihXOpBpnySNMNE34vs-HOtVGn4iD4XP0tbhMLsiYJF3y-wFLZiujpnJK3H4-P3siSl8dg==
-      - NS_EXPORTER_INFLUX_ORG=nightscout
+      - NS_EXPORTER_INFLUX_TOKEN=cJAOWkw29DtfUhyjCNrcEluCL5DIusQTY6M5pMSQWDOEfapYkLgfy_JnRTaSfJH8-EeqWDtw705PiU067OoDdQ==
+      - NS_EXPORTER_INFLUX_ORG=Loop
       - NS_EXPORTER_INFLUX_BUCKET=ns
       - NS_EXPORTER_LIMIT=3
       - NS_EXPORTER_SKIP=0
@@ -182,3 +245,151 @@ services:
     labels:
       - 'traefik.enable=true'
 
+  # --- Nocturne ---
+
+  nocturne-postgres:
+    image: postgres:17
+    container_name: nocturne-postgres
+    restart: always
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: nocturne
+      NOCTURNE_MIGRATOR_PASSWORD: ${POSTGRES_MIGRATOR_PASSWORD}
+      NOCTURNE_APP_PASSWORD: ${POSTGRES_APP_PASSWORD}
+      NOCTURNE_WEB_PASSWORD: ${POSTGRES_WEB_PASSWORD}
+    volumes:
+      - type: bind
+        source: ${NOCTURNE_POSTGRES_BINDMOUNT:-./nocturne/container-init}
+        target: /docker-entrypoint-initdb.d
+        read_only: true
+      - nocturne-postgres-data:/var/lib/postgresql/data
+    logging: *default-logging
+
+  nocturne-api:
+    image: ${NOCTURNE_API_IMAGE:-docker.io/mountrcg/nocturne-api:latest}
+    container_name: nocturne-api
+    restart: always
+    environment:
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      INSTANCE_KEY: ${INSTANCE_KEY}
+      ConnectionStrings__nocturne-postgres: "Host=nocturne-postgres;Port=5432;Database=nocturne;Username=nocturne_app;Password=${POSTGRES_APP_PASSWORD}"
+      ConnectionStrings__nocturne-postgres-migrator: "Host=nocturne-postgres;Port=5432;Database=nocturne;Username=nocturne_migrator;Password=${POSTGRES_MIGRATOR_PASSWORD}"
+      DemoService__Enabled: "false"
+      WEB_URL: "http://nocturne-web:8000"
+      Multitenancy__BaseDomain: "rcg-nocturne.my.to"
+    depends_on:
+      - nocturne-postgres
+    logging: *default-logging
+
+  nocturne-web:
+    image: ${NOCTURNE_WEB_IMAGE:-docker.io/mountrcg/nocturne-web:latest}
+    container_name: nocturne-web
+    restart: always
+    environment:
+      PORT: "8000"
+      ORIGIN: "https://rcg-nocturne.my.to"
+      NOCTURNE_API_HTTP: "http://nocturne-api:8080"
+      services__nocturne-api__http__0: "http://nocturne-api:8080"
+      PUBLIC_API_URL: "http://nocturne-api:8080"
+      NOCTURNE_API_URL: "http://nocturne-api:8080"
+      INSTANCE_KEY: ${INSTANCE_KEY}
+      PUBLIC_BASE_DOMAIN: ${PUBLIC_BASE_DOMAIN}
+      NOCTURNE_POSTGRES_URI: "postgresql://nocturne_web:${POSTGRES_WEB_PASSWORD}@nocturne-postgres:5432/nocturne"
+    depends_on:
+      - nocturne-api
+    logging: *default-logging
+
+  nocturne-gateway:
+    image: mcr.microsoft.com/dotnet/nightly/yarp:2.3-preview
+    container_name: nocturne-gateway
+    restart: always
+    entrypoint: ["dotnet"]
+    command: ["/app/yarp.dll"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      NOCTURNE_API_HTTP: "http://nocturne-api:8080"
+      NOCTURNE_WEB_HTTP: "http://nocturne-web:8000"
+      services__nocturne-api__http__0: "http://nocturne-api:8080"
+      services__nocturne-web__http__0: "http://nocturne-web:8000"
+      REVERSEPROXY__ROUTES__route0__MATCH__PATH: "/api/v4/oidc/{**catch-all}"
+      REVERSEPROXY__ROUTES__route0__CLUSTERID: "cluster_nocturne-api"
+      REVERSEPROXY__ROUTES__route0__TRANSFORMS__0__X-Forwarded: "Set"
+      REVERSEPROXY__ROUTES__route0__TRANSFORMS__0__HeaderPrefix: "X-Forwarded"
+      REVERSEPROXY__ROUTES__route1__MATCH__PATH: "/api/v4/bot/{**catch-all}"
+      REVERSEPROXY__ROUTES__route1__CLUSTERID: "cluster_nocturne-web"
+      REVERSEPROXY__ROUTES__route1__TRANSFORMS__0__X-Forwarded: "Set"
+      REVERSEPROXY__ROUTES__route1__TRANSFORMS__0__HeaderPrefix: "X-Forwarded"
+      REVERSEPROXY__ROUTES__route2__MATCH__PATH: "/api/v4/webhooks/{**catch-all}"
+      REVERSEPROXY__ROUTES__route2__CLUSTERID: "cluster_nocturne-web"
+      REVERSEPROXY__ROUTES__route2__TRANSFORMS__0__X-Forwarded: "Set"
+      REVERSEPROXY__ROUTES__route2__TRANSFORMS__0__HeaderPrefix: "X-Forwarded"
+      REVERSEPROXY__ROUTES__route3__MATCH__PATH: "/api/v1/{**catch-all}"
+      REVERSEPROXY__ROUTES__route3__CLUSTERID: "cluster_nocturne-api"
+      REVERSEPROXY__ROUTES__route3__TRANSFORMS__0__X-Forwarded: "Set"
+      REVERSEPROXY__ROUTES__route3__TRANSFORMS__0__HeaderPrefix: "X-Forwarded"
+      REVERSEPROXY__ROUTES__route4__MATCH__PATH: "/api/v2/{**catch-all}"
+      REVERSEPROXY__ROUTES__route4__CLUSTERID: "cluster_nocturne-api"
+      REVERSEPROXY__ROUTES__route4__TRANSFORMS__0__X-Forwarded: "Set"
+      REVERSEPROXY__ROUTES__route4__TRANSFORMS__0__HeaderPrefix: "X-Forwarded"
+      REVERSEPROXY__ROUTES__route5__MATCH__PATH: "/api/v3/{**catch-all}"
+      REVERSEPROXY__ROUTES__route5__CLUSTERID: "cluster_nocturne-api"
+      REVERSEPROXY__ROUTES__route5__TRANSFORMS__0__X-Forwarded: "Set"
+      REVERSEPROXY__ROUTES__route5__TRANSFORMS__0__HeaderPrefix: "X-Forwarded"
+      REVERSEPROXY__ROUTES__route6__MATCH__PATH: "/api/v4/{**catch-all}"
+      REVERSEPROXY__ROUTES__route6__CLUSTERID: "cluster_nocturne-api"
+      REVERSEPROXY__ROUTES__route6__TRANSFORMS__0__X-Forwarded: "Set"
+      REVERSEPROXY__ROUTES__route6__TRANSFORMS__0__HeaderPrefix: "X-Forwarded"
+      REVERSEPROXY__ROUTES__route7__MATCH__PATH: "/api/{**catch-all}"
+      REVERSEPROXY__ROUTES__route7__CLUSTERID: "cluster_nocturne-web"
+      REVERSEPROXY__ROUTES__route7__TRANSFORMS__0__X-Forwarded: "Set"
+      REVERSEPROXY__ROUTES__route7__TRANSFORMS__0__HeaderPrefix: "X-Forwarded"
+      REVERSEPROXY__ROUTES__route8__MATCH__PATH: "/auth/bot/{**catch-all}"
+      REVERSEPROXY__ROUTES__route8__CLUSTERID: "cluster_nocturne-web"
+      REVERSEPROXY__ROUTES__route8__TRANSFORMS__0__X-Forwarded: "Set"
+      REVERSEPROXY__ROUTES__route8__TRANSFORMS__0__HeaderPrefix: "X-Forwarded"
+      REVERSEPROXY__ROUTES__route9__MATCH__PATH: "/scalar/{**catch-all}"
+      REVERSEPROXY__ROUTES__route9__CLUSTERID: "cluster_nocturne-api"
+      REVERSEPROXY__ROUTES__route9__TRANSFORMS__0__X-Forwarded: "Set"
+      REVERSEPROXY__ROUTES__route9__TRANSFORMS__0__HeaderPrefix: "X-Forwarded"
+      REVERSEPROXY__ROUTES__route10__MATCH__PATH: "/openapi/{**catch-all}"
+      REVERSEPROXY__ROUTES__route10__CLUSTERID: "cluster_nocturne-api"
+      REVERSEPROXY__ROUTES__route10__TRANSFORMS__0__X-Forwarded: "Set"
+      REVERSEPROXY__ROUTES__route10__TRANSFORMS__0__HeaderPrefix: "X-Forwarded"
+      REVERSEPROXY__ROUTES__route11__MATCH__PATH: "/.well-known/{**catch-all}"
+      REVERSEPROXY__ROUTES__route11__CLUSTERID: "cluster_nocturne-api"
+      REVERSEPROXY__ROUTES__route11__TRANSFORMS__0__X-Forwarded: "Set"
+      REVERSEPROXY__ROUTES__route11__TRANSFORMS__0__HeaderPrefix: "X-Forwarded"
+      REVERSEPROXY__ROUTES__route12__MATCH__PATH: "/{**catchall}"
+      REVERSEPROXY__ROUTES__route12__CLUSTERID: "cluster_nocturne-web"
+      REVERSEPROXY__ROUTES__route12__TRANSFORMS__0__X-Forwarded: "Set"
+      REVERSEPROXY__ROUTES__route12__TRANSFORMS__0__HeaderPrefix: "X-Forwarded"
+      REVERSEPROXY__CLUSTERS__cluster_nocturne-api__DESTINATIONS__destination1__ADDRESS: "http://nocturne-api:8080"
+      REVERSEPROXY__CLUSTERS__cluster_nocturne-web__DESTINATIONS__destination1__ADDRESS: "http://nocturne-web:8000"
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.nocturne.rule=Host(`rcg-nocturne.my.to`)'
+      - 'traefik.http.routers.nocturne.entrypoints=websecure'
+      - 'traefik.http.routers.nocturne.tls.certresolver=le'
+      - 'traefik.http.services.nocturne.loadbalancer.server.port=5000'
+    depends_on:
+      - nocturne-api
+      - nocturne-web
+    logging: *default-logging
+
+  watchtower:
+    image: ghcr.io/nicholas-fedor/watchtower:latest
+    container_name: watchtower
+    restart: always
+    environment:
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_POLL_INTERVAL: "86400"
+      WATCHTOWER_INCLUDE_STOPPED: "false"
+      WATCHTOWER_REVIVE_STOPPED: "false"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    logging: *default-logging
